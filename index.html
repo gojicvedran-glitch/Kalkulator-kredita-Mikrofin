@@ -5,210 +5,185 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="MF Kalkulator">
 <title>Kreditni Kalkulator – Mikrofin</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
 <style>
-:root{
---navy:#1a3160; --navy-dk:#0f1e3d; --navy-md:#243a6e;
---blue:#2d5be3; --green:#1a9e6e;
---gold:#e8b84b; --gold-lt:#f5d080;
---bg:#f0f2f8; --bg2:#e6eaf5; --card:#fff;
---border:#d4daea; --border2:#c2cce0;
---txt:#0f1e3d; --txt2:#3a4e7a; --txt3:#6b7fa8;
---sh:0 2px 16px rgba(26,49,96,.09);
---sh2:0 4px 28px rgba(26,49,96,.13);
---r:16px; --rsm:11px;
---safe-top: env(safe-area-inset-top);
---safe-bot: env(safe-area-inset-bottom);
+:root {
+  --navy:#1a3160; --navy-dk:#0f1e3d; --navy-md:#243a6e;
+  --blue:#2d5be3; --green:#1a9e6e;
+  --gold:#e8b84b; --gold-lt:#f5d080;
+  --bg:#f0f2f8; --bg2:#e6eaf5; --card:#fff;
+  --border:#d4daea; --border2:#c2cce0;
+  --txt:#0f1e3d; --txt2:#3a4e7a; --txt3:#6b7fa8;
+  --sh:0 2px 16px rgba(26,49,96,.09);
+  --sh2:0 4px 28px rgba(26,49,96,.13);
+  --r:16px; --rsm:11px;
 }
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;padding-top:var(--safe-top);}
 
-/* HEADER */
-.hd{background:linear-gradient(135deg,var(--navy-dk) 0%,var(--navy) 55%,var(--navy-md) 100%);padding:18px 16px;position:relative;overflow:hidden;}
-.hd-in{display:flex;align-items:center;gap:14px;position:relative;z-index:2;}
-.logo{background:#fff;border-radius:10px;padding:8px 14px;display:flex;align-items:center;gap:8px;box-shadow:0 3px 12px rgba(0,0,0,.2);}
-.logo-mf{font-weight:800;font-size:19px;color:var(--navy);font-style:italic;}
-.hd-txt h1{font-size:17px;font-weight:700;color:#fff;}
-.hd-txt p{font-size:11px;color:rgba(255,255,255,0.6);}
+/* PRISILNI DARK MODE - AKTIVIRA SE ČIM JE IPHONE U TAMNOM REŽIMU */
+@media (prefers-color-scheme: dark) {
+  body { background-color: #000000 !important; color: #ffffff !important; }
+  :root {
+    --bg: #000000;
+    --bg2: #1a1a1a;
+    --card: #121212;
+    --border: #333333;
+    --txt: #ffffff;
+    --txt2: #cccccc;
+    --txt3: #888888;
+  }
+  .card, .cur-bar, .modal, .trow, .pi { background-color: #121212 !important; border-color: #333333 !important; }
+  .iw input, .prod-select, .tnaziv, .tpct-wrap input, .cat-tab, .pf input, .pf-full input {
+    background-color: #1a1a1a !important;
+    color: #ffffff !important;
+    border-color: #444444 !important;
+  }
+  .tval-display, .tros-total { background-color: #000000 !important; color: #ffffff !important; }
+}
 
-/* VALUTA */
-.cur-bar{background:var(--card);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
-.cur-toggle{display:flex;background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
-.cur-toggle button{padding:8px 20px;border:none;background:transparent;font-weight:700;color:var(--txt3);cursor:pointer;}
+/* OSTATAK ORIGINALNOG DIZAJNA */
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;}
+.hd{background:linear-gradient(135deg,var(--navy-dk),var(--navy));padding:20px 16px;color:#fff;}
+.logo{background:#fff;border-radius:10px;padding:8px;display:inline-flex;margin-bottom:10px;}
+.cur-bar{background:var(--card);padding:10px 16px;display:flex;justify-content:space-between;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
+.cur-toggle{display:flex;background:var(--bg2);border-radius:8px;overflow:hidden;}
+.cur-toggle button{padding:8px 16px;border:none;background:transparent;color:var(--txt3);font-weight:700;}
 .cur-toggle button.active{background:var(--navy);color:#fff;}
-
-/* MAIN */
-.main{padding:16px 14px calc(32px + var(--safe-bot));}
-.card{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);border:1.5px solid var(--border);margin-bottom:14px;}
-.card-hd{background:linear-gradient(90deg,var(--navy) 0%,var(--navy-md) 100%);padding:12px 16px;color:#fff;font-size:14px;border-radius:14px 14px 0 0;}
+.main{padding:16px;}
+.card{background:var(--card);border-radius:var(--r);border:1px solid var(--border);margin-bottom:14px;overflow:hidden;}
+.card-hd{background:var(--navy);padding:10px 16px;color:#fff;font-size:14px;font-weight:700;}
 .card-body{padding:16px;}
-
-/* RESULT CARD */
-.res-card{background:linear-gradient(135deg,var(--navy-dk) 0%,var(--navy) 100%);border-radius:var(--r);padding:20px 16px;box-shadow:var(--sh2);margin-bottom:14px;color:#fff;}
-.res-amt{font-family:'JetBrains Mono',monospace;font-size:38px;font-weight:600;}
-.res-cur{font-size:16px;font-weight:700;color:var(--gold-lt);}
-.eks-pill{display:inline-block;background:rgba(255,255,255,0.1);padding:4px 10px;border-radius:20px;font-size:12px;margin-top:8px;}
-
-/* INPUTS */
-.field label{display:block;font-size:13px;font-weight:600;color:var(--txt2);margin-bottom:8px;}
-.iw{position:relative;display:flex;align-items:center;}
-.iw input{width:100%;padding:14px;border:1.5px solid var(--border);border-radius:var(--rsm);font-family:'JetBrains Mono',monospace;font-size:17px;background:var(--bg);outline:none;}
-input[type="range"]{width:100%;margin:15px 0;accent-color:var(--navy);}
-
-/* SELECT */
-.prod-select{width:100%;padding:13px;border:1.5px solid var(--border);border-radius:var(--rsm);background:#fff;font-size:15px;}
-.cat-tabs{display:flex;gap:7px;overflow-x:auto;padding-bottom:10px;margin-bottom:10px;}
-.cat-tab{padding:7px 15px;border-radius:20px;border:1px solid var(--border);background:#fff;white-space:nowrap;font-size:13px;font-weight:600;}
+.res-card{background:linear-gradient(135deg,var(--navy-dk),var(--navy));padding:20px;border-radius:var(--r);color:#fff;margin-bottom:14px;}
+.res-amt{font-family:'JetBrains Mono';font-size:36px;font-weight:700;}
+.btn-ponuda{width:100%;background:var(--gold);padding:16px;border:none;border-radius:12px;font-weight:800;color:var(--navy-dk);margin-top:10px;}
+.cat-scroll{display:flex;gap:8px;overflow-x:auto;padding-bottom:10px;}
+.cat-tab{padding:8px 16px;border-radius:20px;border:1px solid var(--border);background:var(--card);white-space:nowrap;font-size:13px;font-weight:600;}
 .cat-tab.active{background:var(--navy);color:#fff;}
-
-.btn-ponuda{width:100%;background:linear-gradient(135deg,var(--gold) 0%,var(--gold-lt) 100%);border:none;border-radius:var(--rsm);padding:16px;font-size:16px;font-weight:700;color:var(--navy-dk);margin-top:10px;}
+.prod-select{width:100%;padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--txt);margin-top:10px;}
+.field{margin-bottom:15px;}
+.iw{position:relative;}
+.iw input{width:100%;padding:14px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);color:var(--txt);font-family:'JetBrains Mono';font-size:18px;}
+.isuf{position:absolute;right:15px;top:15px;font-weight:700;color:var(--txt3);}
 </style>
 </head>
 <body>
 
 <div class="hd">
-<div class="hd-in">
-<div class="logo"><span class="logo-mf">MF</span></div>
-<div class="hd-txt">
-<h1>Kreditni kalkulator</h1>
-<p>Mikrofin Derventa - Vedran Gojić</p>
-</div>
-</div>
+  <div class="logo"><b style="color:#1a3160;font-style:italic;font-size:20px;">MF</b></div>
+  <h1>Kreditni kalkulator</h1>
+  <p>Mikrofin Derventa - Vedran Gojić</p>
 </div>
 
 <div class="cur-bar">
-<div class="cur-toggle">
-<button class="active" id="btn-km" onclick="setCur('KM')">KM</button>
-<button id="btn-eur" onclick="setCur('EUR')">EUR</button>
-</div>
-<span id="rate-text" style="font-size:12px; color:var(--txt3);">1 € = 1,946 KM</span>
+  <div class="cur-toggle">
+    <button class="active" id="btn-km" onclick="setCur('KM')">KM</button>
+    <button id="btn-eur" onclick="setCur('EUR')">EUR</button>
+  </div>
+  <span style="font-size:12px;color:var(--txt3);">1 € = 1,946 KM</span>
 </div>
 
 <div class="main">
-<div class="res-card">
-<div style="font-size:11px; opacity:0.6; text-transform:uppercase;">Miesečna rata</div>
-<div class="res-main">
-<span class="res-amt" id="r-rata">0,00</span>
-<span class="res-cur" id="r-cur">KM</span>
-</div>
-<div id="r-eks" class="eks-pill">EKS: 0,00%</div>
-<div id="r-tros" style="font-size:12px; margin-top:10px; opacity:0.8;">Troškovi obrade: 0,00 KM</div>
-</div>
+  <div class="res-card">
+    <div style="font-size:11px;opacity:0.7;">MIESEČNA RATA</div>
+    <div class="res-amt" id="r-rata">0,00</div>
+    <div id="r-eks" style="font-size:12px;background:rgba(255,255,255,0.1);display:inline-block;padding:3px 8px;border-radius:5px;margin-top:5px;">EKS: 0,00%</div>
+  </div>
 
-<div class="card">
-<div class="card-hd">Odabir kredita</div>
-<div class="card-body">
-<div class="cat-tabs" id="tabs"></div>
-<select class="prod-select" id="prod-sel" onchange="onProdChange()"></select>
-</div>
-</div>
+  <div class="card">
+    <div class="card-hd">Proizvod</div>
+    <div class="card-body">
+      <div class="cat-scroll" id="tabs"></div>
+      <select class="prod-select" id="prod-sel" onchange="onProdChange()"></select>
+    </div>
+  </div>
 
-<div class="card">
-<div class="card-body">
-<div class="field">
-<label>Iznos kredita</label>
-<div class="iw">
-<input type="number" id="iznos" value="5000" oninput="syncRange('iznos');calc()">
-</div>
-<input type="range" id="iznos-r" min="100" max="50000" step="100" value="5000" oninput="syncInput('iznos');calc()">
-</div>
+  <div class="card">
+    <div class="card-body">
+      <div class="field">
+        <label style="font-size:12px;font-weight:700;color:var(--txt3);text-transform:uppercase;">Iznos kredita</label>
+        <div class="iw">
+          <input type="number" id="iznos" value="5000" oninput="calc()">
+          <span class="isuf" id="suf-iznos">KM</span>
+        </div>
+      </div>
+      <div class="field">
+        <label style="font-size:12px;font-weight:700;color:var(--txt3);text-transform:uppercase;">Rok (mjeseci)</label>
+        <div class="iw">
+          <input type="number" id="rok" value="36" oninput="calc()">
+          <span class="isuf">mj.</span>
+        </div>
+      </div>
+    </div>
+  </div>
 
-<div class="field">
-<label>Rok otplate (mjeseci)</label>
-<div class="iw">
-<input type="number" id="rok" value="36" oninput="syncRange('rok');calc()">
-</div>
-<input type="range" id="rok-r" min="1" max="120" value="36" oninput="syncInput('rok');calc()">
-</div>
-
-<div class="field">
-<label>NKS (%)</label>
-<div class="iw">
-<input type="number" id="kamata" value="12" step="0.01" oninput="calc()">
-</div>
-</div>
-</div>
-</div>
-
-<button class="btn-ponuda" onclick="alert('Funkcija za izvoz ponude je aktivirana!')">📄 Generiši Ponudu</button>
+  <button class="btn-ponuda" onclick="alert('Ponuda spremna!')">GENERISI PONUDU</button>
 </div>
 
 <script>
 const KURS = 1.946;
 const PROIZVODI = [
-{cat:'STANOVNIŠTVO',name:'Penzioneri (do 5.000 KM)',imin:100,imax:5000,nks:20.49,prov:0,rokMax:60},
-{cat:'STANOVNIŠTVO',name:'Keško (5.001 – 10.000 KM)',imin:5001,imax:10000,nks:22.49,prov:0,rokMax:60},
-{cat:'STANOVNIŠTVO',name:'Domaćinstvo (20.001 – 50.000 KM)',imin:20001,imax:50000,nks:18.49,prov:1.0,rokMax:84},
-{cat:'POLJOPRIVREDA',name:'Poljoprivreda (5.001 – 15.000 KM)',imin:5001,imax:15000,nks:17,prov:1.5,rokMax:60},
-{cat:'TOTO',name:'Toto cash (401 – 1.500 KM)',imin:401,imax:1500,nks:14.4,prov:0,rokMax:12},
-{cat:'IRB',name:'Mladi bračni parovi',imin:10000,imax:50000,nks:3.0,prov:0.5,rokMax:300}
+  {cat:'STANOVNIŠTVO',name:'Penzioneri (do 5.000 KM)',imin:100,imax:5000,nks:20.49,prov:0,rokMax:60},
+  {cat:'STANOVNIŠTVO',name:'Keško (5.001 – 10.000 KM)',imin:5001,imax:10000,nks:22.49,prov:0,rokMax:60},
+  {cat:'POLJOPRIVREDA',name:'Poljoprivreda (do 50.000 KM)',imin:300,imax:50000,nks:17,prov:1.5,rokMax:72},
+  {cat:'IRB',name:'Mladi bračni parovi',imin:10000,imax:50000,nks:3.0,prov:0.5,rokMax:300}
 ];
 
 let cur = 'KM';
 
 function setCur(c) {
-cur = c;
-document.getElementById('btn-km').classList.toggle('active', c==='KM');
-document.getElementById('btn-eur').classList.toggle('active', c==='EUR');
-document.getElementById('r-cur').textContent = c;
-calc();
+  cur = c;
+  document.getElementById('btn-km').classList.toggle('active', c==='KM');
+  document.getElementById('btn-eur').classList.toggle('active', c==='EUR');
+  document.getElementById('suf-iznos').textContent = c;
+  calc();
 }
 
-function syncRange(id) { document.getElementById(id+'-r').value = document.getElementById(id).value; }
-function syncInput(id) { document.getElementById(id).value = document.getElementById(id+'-r').value; }
-
 function init() {
-const cats = ['SVI', ...new Set(PROIZVODI.map(p=>p.cat))];
-document.getElementById('tabs').innerHTML = cats.map(c=>`<button class="cat-tab ${c==='SVI'?'active':''}" onclick="filter('${c}', this)">${c}</button>`).join('');
-fillSelect('SVI');
-calc();
+  const cats = ['SVI', ...new Set(PROIZVODI.map(p=>p.cat))];
+  document.getElementById('tabs').innerHTML = cats.map(c=>`<button class="cat-tab ${c==='SVI'?'active':''}" onclick="filter('${c}', this)">${c}</button>`).join('');
+  fillSelect('SVI');
 }
 
 function filter(cat, btn) {
-document.querySelectorAll('.cat-tab').forEach(b=>b.classList.remove('active'));
-btn.classList.add('active');
-fillSelect(cat);
+  document.querySelectorAll('.cat-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  fillSelect(cat);
 }
 
 function fillSelect(cat) {
-const filtered = cat==='SVI' ? PROIZVODI : PROIZVODI.filter(p=>p.cat===cat);
-document.getElementById('prod-sel').innerHTML = filtered.map(p=>`<option value="${PROIZVODI.indexOf(p)}">${p.name}</option>`).join('');
-onProdChange();
+  const filtered = cat==='SVI' ? PROIZVODI : PROIZVODI.filter(p=>p.cat===cat);
+  document.getElementById('prod-sel').innerHTML = filtered.map(p=>`<option value="${PROIZVODI.indexOf(p)}">${p.name}</option>`).join('');
+  onProdChange();
 }
 
 function onProdChange() {
-const p = PROIZVODI[document.getElementById('prod-sel').value];
-if(!p) return;
-document.getElementById('iznos').value = p.imin;
-document.getElementById('iznos-r').min = p.imin;
-document.getElementById('iznos-r').max = p.imax;
-document.getElementById('iznos-r').value = p.imin;
-document.getElementById('rok').value = p.rokMax;
-document.getElementById('rok-r').max = p.rokMax;
-document.getElementById('rok-r').value = p.rokMax;
-document.getElementById('kamata').value = p.nks;
-calc();
+  const p = PROIZVODI[document.getElementById('prod-sel').value];
+  if(!p) return;
+  document.getElementById('iznos').value = p.imin;
+  document.getElementById('rok').value = p.rokMax;
+  calc();
 }
 
 function calc() {
-const iznos = parseFloat(document.getElementById('iznos').value) || 0;
-const rok = parseInt(document.getElementById('rok').value) || 1;
-const nks = parseFloat(document.getElementById('kamata').value) || 0;
-const p = PROIZVODI[document.getElementById('prod-sel').value] || {prov:0};
+  const iznos = parseFloat(document.getElementById('iznos').value) || 0;
+  const rok = parseInt(document.getElementById('rok').value) || 1;
+  const p = PROIZVODI[document.getElementById('prod-sel').value] || {nks:12, prov:0};
+  
+  const r = (p.nks/100)/12;
+  const rata = nks_calc(iznos, r, rok);
+  const eks = (((rata * rok + (iznos * p.prov/100)) - iznos) / iznos / (rok/12)) * 100;
 
-const r = (nks/100)/12;
-const rata = nks > 0 ? (iznos * r * Math.pow(1+r, rok)) / (Math.pow(1+r, rok) - 1) : iznos/rok;
+  document.getElementById('r-rata').textContent = rata.toLocaleString('bs-BA', {minimumFractionDigits:2});
+  document.getElementById('r-eks').textContent = `EKS: ${eks.toFixed(2)}%`;
+}
 
-const provizija = iznos * (p.prov/100);
-const eks = (((rata * rok + provizija) - iznos) / iznos / (rok/12)) * 100;
-
-document.getElementById('r-rata').textContent = rata.toLocaleString('bs-BA', {minimumFractionDigits:2});
-document.getElementById('r-eks').textContent = `EKS: ${eks > 0 ? eks.toFixed(2) : '0.00'}%`;
-document.getElementById('r-tros').textContent = `Troškovi obrade (${p.prov}%): ${provizija.toLocaleString()} ${cur}`;
+function nks_calc(p, r, n) {
+  if(r === 0) return p/n;
+  return p * r * Math.pow(1+r, n) / (Math.pow(1+r, n) - 1);
 }
 
 window.onload = init;
