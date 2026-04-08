@@ -1,192 +1,1543 @@
 <!DOCTYPE html>
+
 <html lang="bs">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Kreditni Kalkulator – Mikrofin</title>
+<title>Mikrofin – Kreditni kalkulator</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
 <style>
-:root {
+/* ═══════════════════════════════════════════════════
+   VARIJABLE I RESET
+═══════════════════════════════════════════════════ */
+:root{
   --navy:#1a3160; --navy-dk:#0f1e3d; --navy-md:#243a6e;
-  --blue:#2d5be3; --green:#1a9e6e;
+  --blue:#2d5be3; --green:#1a9e6e; --red:#e53935;
   --gold:#e8b84b; --gold-lt:#f5d080;
   --bg:#f0f2f8; --bg2:#e6eaf5; --card:#fff;
   --border:#d4daea; --border2:#c2cce0;
   --txt:#0f1e3d; --txt2:#3a4e7a; --txt3:#6b7fa8;
-  --sh:0 2px 16px rgba(26,49,96,.09);
-  --sh2:0 4px 28px rgba(26,49,96,.13);
+  --sh:0 2px 14px rgba(26,49,96,.09);
+  --sh2:0 4px 28px rgba(26,49,96,.14);
   --r:16px; --rsm:11px;
+  --safe-top:env(safe-area-inset-top);
+  --safe-bot:env(safe-area-inset-bottom);
 }
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html{font-size:16px;-webkit-text-size-adjust:100%;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;overflow-x:hidden;}
 
-/* PRISILNI DARK MODE - AKTIVIRA SE ČIM JE IPHONE U TAMNOM REŽIMU */
-@media (prefers-color-scheme: dark) {
-  body { background-color: #000000 !important; color: #ffffff !important; }
-  :root {
-    --bg: #000000;
-    --bg2: #1a1a1a;
-    --card: #121212;
-    --border: #333333;
-    --txt: #ffffff;
-    --txt2: #cccccc;
-    --txt3: #888888;
-  }
-  .card, .cur-bar, .modal, .trow, .pi { background-color: #121212 !important; border-color: #333333 !important; }
-  .iw input, .prod-select, .tnaziv, .tpct-wrap input, .cat-tab, .pf input, .pf-full input {
-    background-color: #1a1a1a !important;
-    color: #ffffff !important;
-    border-color: #444444 !important;
-  }
-  .tval-display, .tros-total { background-color: #000000 !important; color: #ffffff !important; }
+/* ═══════════════════════════════════════════════════
+NAVIGACIJA (tabovi)
+═══════════════════════════════════════════════════ */
+.tab-bar{
+position:fixed;bottom:0;left:0;right:0;z-index:100;
+background:#fff;border-top:1px solid var(–border);
+display:flex;
+padding-bottom:var(–safe-bot);
+box-shadow:0 -2px 12px rgba(26,49,96,.08);
 }
+.tab-btn{
+flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+padding:10px 0 8px;border:none;background:transparent;cursor:pointer;
+font-family:‘Inter’,sans-serif;font-size:11px;font-weight:600;color:var(–txt3);
+gap:3px;transition:color .18s;
+}
+.tab-btn.active{color:var(–navy);}
+.tab-btn svg{width:22px;height:22px;}
+.tab-icon{font-size:20px;line-height:1;}
 
-/* OSTATAK ORIGINALNOG DIZAJNA */
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;}
-.hd{background:linear-gradient(135deg,var(--navy-dk),var(--navy));padding:20px 16px;color:#fff;}
-.logo{background:#fff;border-radius:10px;padding:8px;display:inline-flex;margin-bottom:10px;}
-.cur-bar{background:var(--card);padding:10px 16px;display:flex;justify-content:space-between;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
-.cur-toggle{display:flex;background:var(--bg2);border-radius:8px;overflow:hidden;}
-.cur-toggle button{padding:8px 16px;border:none;background:transparent;color:var(--txt3);font-weight:700;}
-.cur-toggle button.active{background:var(--navy);color:#fff;}
-.main{padding:16px;}
-.card{background:var(--card);border-radius:var(--r);border:1px solid var(--border);margin-bottom:14px;overflow:hidden;}
-.card-hd{background:var(--navy);padding:10px 16px;color:#fff;font-size:14px;font-weight:700;}
-.card-body{padding:16px;}
-.res-card{background:linear-gradient(135deg,var(--navy-dk),var(--navy));padding:20px;border-radius:var(--r);color:#fff;margin-bottom:14px;}
-.res-amt{font-family:'JetBrains Mono';font-size:36px;font-weight:700;}
-.btn-ponuda{width:100%;background:var(--gold);padding:16px;border:none;border-radius:12px;font-weight:800;color:var(--navy-dk);margin-top:10px;}
-.cat-scroll{display:flex;gap:8px;overflow-x:auto;padding-bottom:10px;}
-.cat-tab{padding:8px 16px;border-radius:20px;border:1px solid var(--border);background:var(--card);white-space:nowrap;font-size:13px;font-weight:600;}
-.cat-tab.active{background:var(--navy);color:#fff;}
-.prod-select{width:100%;padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--txt);margin-top:10px;}
-.field{margin-bottom:15px;}
-.iw{position:relative;}
-.iw input{width:100%;padding:14px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);color:var(--txt);font-family:'JetBrains Mono';font-size:18px;}
-.isuf{position:absolute;right:15px;top:15px;font-weight:700;color:var(--txt3);}
+/* ═══════════════════════════════════════════════════
+EKRANI
+═══════════════════════════════════════════════════ */
+.screen{display:none;padding-bottom:calc(72px + var(–safe-bot));}
+.screen.active{display:block;}
+
+/* ═══════════════════════════════════════════════════
+HEADER
+═══════════════════════════════════════════════════ */
+.hd{
+background:linear-gradient(135deg,var(–navy-dk) 0%,var(–navy) 55%,var(–navy-md) 100%);
+padding-top:calc(14px + var(–safe-top));
+position:relative;overflow:hidden;
+}
+.hd::after{content:’’;position:absolute;top:-60px;right:-60px;width:260px;height:260px;
+background:radial-gradient(circle,rgba(45,91,227,.18) 0%,transparent 70%);border-radius:50%;}
+.hd-in{padding:0 16px 16px;display:flex;align-items:center;gap:12px;position:relative;z-index:2;}
+.logo{background:#fff;border-radius:10px;padding:7px 13px;display:flex;align-items:center;gap:8px;
+box-shadow:0 3px 12px rgba(0,0,0,.2);flex-shrink:0;}
+.logo-mf{font-weight:800;font-size:18px;color:var(–navy);letter-spacing:-1px;font-style:italic;}
+.logo-txt{display:flex;flex-direction:column;line-height:1.2;}
+.logo-txt b{font-size:11px;font-weight:800;color:var(–navy);letter-spacing:.7px;}
+.logo-txt small{font-size:9px;color:var(–txt3);font-weight:500;}
+.hd-txt{flex:1;min-width:0;}
+.hd-txt h1{font-size:16px;font-weight:700;color:#fff;letter-spacing:-.2px;}
+.hd-txt p{font-size:11px;color:rgba(255,255,255,.6);margin-top:1px;}
+
+/* ═══════════════════════════════════════════════════
+STICKY VALUTA BAR
+═══════════════════════════════════════════════════ */
+.cur-bar{
+background:var(–card);border-bottom:1px solid var(–border);
+padding:9px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;
+position:sticky;top:0;z-index:50;box-shadow:0 2px 8px rgba(26,49,96,.06);
+}
+.cur-toggle{display:flex;background:var(–bg2);border:1.5px solid var(–border);border-radius:10px;overflow:hidden;}
+.cur-toggle button{padding:7px 20px;border:none;background:transparent;font-family:‘Inter’,sans-serif;
+font-size:14px;font-weight:700;color:var(–txt3);cursor:pointer;transition:all .18s;min-width:60px;}
+.cur-toggle button.active{background:var(–navy);color:#fff;border-radius:8px;}
+.rate-pill{font-size:11px;color:var(–txt3);background:var(–bg2);border-radius:8px;
+padding:5px 10px;font-weight:500;border:1px solid var(–border);white-space:nowrap;}
+
+/* ═══════════════════════════════════════════════════
+KARTA (card)
+═══════════════════════════════════════════════════ */
+.wrap{padding:14px 14px 0;}
+.card{background:var(–card);border-radius:var(–r);box-shadow:var(–sh);
+border:1.5px solid var(–border);margin-bottom:14px;overflow:hidden;}
+.card-hd{background:linear-gradient(90deg,var(–navy) 0%,var(–navy-md) 100%);
+padding:11px 16px;display:flex;align-items:center;gap:8px;}
+.card-hd h2{color:#fff;font-size:14px;font-weight:700;}
+.card-hd .ico{font-size:15px;}
+.card-body{padding:15px;}
+
+/* ═══════════════════════════════════════════════════
+SEKCIJA LABEL
+═══════════════════════════════════════════════════ */
+.slbl{font-size:11px;font-weight:700;color:var(–txt3);letter-spacing:.8px;
+text-transform:uppercase;margin-bottom:9px;display:flex;align-items:center;gap:6px;}
+.slbl::before{content:’’;display:inline-block;width:3px;height:12px;background:var(–gold);border-radius:2px;}
+
+/* ═══════════════════════════════════════════════════
+KATEGORI TABS
+═══════════════════════════════════════════════════ */
+.cat-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -15px 12px;padding:2px 15px;}
+.cat-scroll::-webkit-scrollbar{display:none;}
+.cat-tabs{display:flex;gap:7px;width:max-content;}
+.cat-tab{padding:7px 14px;border-radius:20px;border:1.5px solid var(–border);background:#fff;
+font-family:‘Inter’,sans-serif;font-size:13px;font-weight:600;color:var(–txt2);
+cursor:pointer;white-space:nowrap;}
+.cat-tab.active{background:var(–navy);border-color:var(–navy);color:#fff;}
+
+/* ═══════════════════════════════════════════════════
+SELECT
+═══════════════════════════════════════════════════ */
+.sel-wrap{position:relative;}
+.prod-select{width:100%;padding:13px 42px 13px 14px;border:1.5px solid var(–border);
+border-radius:var(–rsm);font-family:‘Inter’,sans-serif;font-size:15px;color:var(–txt);
+background:#fff;outline:none;cursor:pointer;-webkit-appearance:none;appearance:none;
+background-image:url(“data:image/svg+xml,%3Csvg xmlns=‘http://www.w3.org/2000/svg’ width=‘18’ height=‘18’ viewBox=‘0 0 24 24’ fill=‘none’ stroke=’%236b7fa8’ stroke-width=‘2.5’%3E%3Cpath d=‘M6 9l6 6 6-6’/%3E%3C/svg%3E”);
+background-repeat:no-repeat;background-position:right 13px center;}
+.prod-select:focus{border-color:var(–blue);box-shadow:0 0 0 3px rgba(45,91,227,.1);}
+.auto-badge{display:inline-flex;align-items:center;gap:4px;background:#e8f5e9;
+border:1px solid #a5d6a7;border-radius:6px;padding:3px 8px;
+font-size:11px;font-weight:600;color:#2e7d32;margin-top:8px;}
+
+/* ═══════════════════════════════════════════════════
+INFO PANEL PROIZVODA
+═══════════════════════════════════════════════════ */
+.prod-info{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;}
+.pi{background:var(–bg);border-radius:var(–rsm);padding:10px 12px;border:1px solid var(–border);}
+.pi-lbl{font-size:10px;font-weight:700;color:var(–txt3);letter-spacing:.5px;text-transform:uppercase;margin-bottom:3px;}
+.pi-val{font-size:14px;font-weight:700;color:var(–navy);}
+.pi-val.green{color:var(–green);}
+.pi-full{grid-column:1/-1;}
+.prod-note{margin-top:10px;padding:10px 12px;background:#fffbec;border:1px solid #f0d880;
+border-radius:var(–rsm);font-size:12px;color:#7a5f10;line-height:1.5;display:none;}
+
+/* ═══════════════════════════════════════════════════
+INPUTI I SLIDERI
+═══════════════════════════════════════════════════ */
+.field{margin-bottom:16px;}
+.field:last-child{margin-bottom:0;}
+.field label{display:block;font-size:13px;font-weight:600;color:var(–txt2);margin-bottom:8px;}
+.iw{position:relative;display:flex;align-items:center;}
+.iw input[type=“number”]{
+width:100%;padding:13px 52px 13px 14px;
+border:1.5px solid var(–border);border-radius:var(–rsm);
+font-family:‘JetBrains Mono’,monospace;font-size:17px;font-weight:500;
+color:var(–txt);background:var(–bg);outline:none;
+-webkit-appearance:none;-moz-appearance:textfield;
+transition:border-color .18s,box-shadow .18s;
+}
+.iw input::-webkit-outer-spin-button,.iw input::-webkit-inner-spin-button{-webkit-appearance:none;}
+.iw input:focus{border-color:var(–blue);box-shadow:0 0 0 3px rgba(45,91,227,.1);background:#fff;}
+.isuf{position:absolute;right:14px;font-size:13px;font-weight:700;color:var(–txt3);pointer-events:none;}
+input[type=“range”]{
+-webkit-appearance:none;width:100%;height:6px;margin-top:12px;
+background:linear-gradient(to right,var(–navy) 0%,var(–navy) var(–pct,50%),var(–border2) var(–pct,50%),var(–border2) 100%);
+border-radius:3px;outline:none;cursor:pointer;
+}
+input[type=“range”]::-webkit-slider-thumb{
+-webkit-appearance:none;width:24px;height:24px;background:#fff;
+border:3px solid var(–navy);border-radius:50%;box-shadow:0 2px 8px rgba(26,49,96,.22);
+}
+.rlbls{display:flex;justify-content:space-between;margin-top:5px;}
+.rlbls span{font-size:11px;color:var(–txt3);font-weight:500;}
+
+/* ═══════════════════════════════════════════════════
+REZULTAT KARTICA
+═══════════════════════════════════════════════════ */
+.res-card{
+background:linear-gradient(135deg,var(–navy-dk) 0%,var(–navy) 100%);
+border-radius:var(–r);padding:20px 16px;box-shadow:var(–sh2);
+margin-bottom:14px;position:relative;overflow:hidden;
+}
+.res-card::before{content:’’;position:absolute;top:-30px;right:-30px;width:160px;height:160px;
+background:radial-gradient(circle,rgba(45,91,227,.22) 0%,transparent 70%);border-radius:50%;}
+.res-lbl{font-size:11px;font-weight:600;letter-spacing:.9px;text-transform:uppercase;
+color:rgba(255,255,255,.55);margin-bottom:4px;}
+.res-main{display:flex;align-items:baseline;gap:7px;margin-bottom:3px;position:relative;z-index:1;}
+.res-amt{font-family:‘JetBrains Mono’,monospace;font-size:38px;font-weight:600;color:#fff;letter-spacing:-1px;}
+.res-cur{font-size:16px;font-weight:700;color:var(–gold-lt);}
+.res-conv{font-size:13px;color:rgba(255,255,255,.42);font-family:‘JetBrains Mono’,monospace;
+margin-bottom:16px;position:relative;z-index:1;}
+.res-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;position:relative;z-index:1;}
+.ri{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.11);border-radius:10px;padding:11px 12px;}
+.ri-lbl{font-size:10px;color:rgba(255,255,255,.48);font-weight:600;letter-spacing:.4px;text-transform:uppercase;margin-bottom:3px;}
+.ri-val{font-family:‘JetBrains Mono’,monospace;font-size:14px;font-weight:600;color:#fff;}
+.ri-sub{font-size:10px;color:rgba(255,255,255,.3);margin-top:2px;}
+
+/* ═══════════════════════════════════════════════════
+TROŠKOVI
+═══════════════════════════════════════════════════ */
+.trow{background:var(–bg);border:1.5px solid var(–border);border-radius:var(–rsm);
+padding:11px;margin-bottom:10px;}
+.trow-top{display:flex;gap:8px;align-items:center;margin-bottom:8px;}
+.tnaziv{flex:1;padding:10px 12px;border:1.5px solid var(–border);border-radius:9px;
+font-family:‘Inter’,sans-serif;font-size:14px;color:var(–txt);background:#fff;outline:none;
+-webkit-appearance:none;}
+.tnaziv:focus{border-color:var(–blue);}
+.btn-rm{background:#fff;border:1.5px solid #f5c6c6;cursor:pointer;color:var(–red);
+font-size:16px;border-radius:9px;width:40px;height:44px;
+display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.trow-bot{display:flex;gap:8px;align-items:center;}
+.tpct-wrap{position:relative;flex:0 0 110px;}
+.tpct-wrap input{width:100%;padding:10px 26px 10px 12px;border:1.5px solid var(–border);
+border-radius:9px;font-family:‘JetBrains Mono’,monospace;font-size:14px;
+color:var(–txt);background:#fff;outline:none;-moz-appearance:textfield;-webkit-appearance:none;}
+.tpct-wrap input::-webkit-outer-spin-button,.tpct-wrap input::-webkit-inner-spin-button{-webkit-appearance:none;}
+.tpct-wrap input:focus{border-color:var(–blue);}
+.tsuf-lbl{position:absolute;right:9px;top:50%;transform:translateY(-50%);font-size:12px;font-weight:700;color:var(–txt3);}
+.tval-display{flex:1;padding:10px 12px;border:1.5px solid var(–border2);border-radius:9px;
+font-family:‘JetBrains Mono’,monospace;font-size:13px;font-weight:600;color:var(–txt2);
+background:#f0f4fc;text-align:right;}
+.btn-add{display:flex;align-items:center;gap:7px;background:var(–bg2);
+border:1.5px dashed var(–blue);border-radius:var(–rsm);padding:12px 16px;
+font-family:‘Inter’,sans-serif;font-size:14px;font-weight:600;color:var(–blue);
+cursor:pointer;width:100%;justify-content:center;margin-top:4px;}
+.tros-total{display:flex;justify-content:space-between;align-items:center;
+margin-top:12px;padding:12px 14px;background:var(–bg2);border-radius:var(–rsm);
+font-weight:700;font-size:14px;color:var(–navy);border:1px solid var(–border);}
+.tros-total .tv{font-family:‘JetBrains Mono’,monospace;}
+
+/* ═══════════════════════════════════════════════════
+DUGME ZA PONUDU
+═══════════════════════════════════════════════════ */
+.btn-ponuda{width:100%;background:linear-gradient(135deg,var(–gold) 0%,var(–gold-lt) 100%);
+border:none;border-radius:var(–rsm);padding:16px;font-family:‘Inter’,sans-serif;
+font-size:16px;font-weight:700;color:var(–navy-dk);cursor:pointer;
+display:flex;align-items:center;justify-content:center;gap:9px;
+box-shadow:0 4px 18px rgba(232,184,75,.35);}
+
+/* ═══════════════════════════════════════════════════
+KONTAKT
+═══════════════════════════════════════════════════ */
+.c-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.c-item{display:flex;align-items:center;gap:9px;text-decoration:none;color:var(–navy);
+font-size:13px;font-weight:600;padding:10px 12px;border-radius:10px;background:var(–bg);
+border:1px solid var(–border);}
+.c-ico{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+
+/* ═══════════════════════════════════════════════════
+MODAL (ponuda)
+═══════════════════════════════════════════════════ */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;
+display:none;align-items:flex-end;justify-content:center;
+-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);}
+.overlay.open{display:flex;}
+.modal{background:#fff;border-radius:20px 20px 0 0;width:100%;
+max-height:94vh;overflow-y:auto;-webkit-overflow-scrolling:touch;
+padding-bottom:calc(16px + var(–safe-bot));
+box-shadow:0 -8px 40px rgba(0,0,0,.25);}
+.m-hd{background:linear-gradient(135deg,var(–navy-dk),var(–navy));padding:15px 18px;
+border-radius:20px 20px 0 0;display:flex;align-items:center;justify-content:space-between;
+position:sticky;top:0;z-index:10;}
+.m-hd h3{color:#fff;font-size:15px;font-weight:700;}
+.m-close{background:rgba(255,255,255,.15);border:none;color:#fff;width:32px;height:32px;
+border-radius:8px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;}
+.m-body{padding:16px;}
+.p-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.pf label,.pf-full label{display:block;font-size:11px;font-weight:700;color:var(–txt2);
+letter-spacing:.4px;text-transform:uppercase;margin-bottom:5px;}
+.pf input,.pf-full input{width:100%;padding:12px 13px;border:1.5px solid var(–border);
+border-radius:var(–rsm);font-family:‘Inter’,sans-serif;font-size:15px;color:var(–txt);
+background:var(–bg);outline:none;-webkit-appearance:none;}
+.pf input:focus,.pf-full input:focus{border-color:var(–blue);box-shadow:0 0 0 3px rgba(45,91,227,.1);}
+.pf-full{margin-bottom:12px;}
+.hdiv{height:1px;background:var(–border);margin:4px 0 16px;}
+
+/* ═══════════════════════════════════════════════════
+PONUDA PREVIEW
+═══════════════════════════════════════════════════ */
+#pp{background:#fff;border-radius:12px;overflow:hidden;border:1.5px solid var(–border);}
+.pp-top{background:linear-gradient(135deg,var(–navy-dk) 0%,var(–navy) 100%);
+padding:16px 18px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+.pp-logo .logo{box-shadow:none;border:2px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);}
+.pp-logo .logo-mf,.pp-logo .logo-txt b{color:#fff;}
+.pp-logo .logo-txt small{color:rgba(255,255,255,.6);}
+.pp-logo-sub{font-size:10px;color:rgba(255,255,255,.5);margin-top:5px;font-weight:500;}
+.pp-meta{text-align:right;min-width:0;}
+.pp-meta .pm-tag{font-size:9px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;color:rgba(255,255,255,.5);}
+.pp-meta .pm-title{font-size:14px;font-weight:800;color:#fff;margin:2px 0;}
+.pp-meta .pm-sub{font-size:11px;color:rgba(255,255,255,.55);}
+.pp-meta .pm-klijent{font-size:12px;font-weight:700;color:var(–gold-lt);margin-top:4px;}
+.pp-rata{background:var(–gold);padding:12px 18px;display:flex;justify-content:space-between;align-items:center;}
+.pp-rl{font-size:11px;font-weight:700;color:rgba(15,30,61,.65);letter-spacing:.4px;text-transform:uppercase;}
+.pp-rc{font-size:11px;color:rgba(15,30,61,.5);margin-top:2px;}
+.pp-rv{font-family:‘JetBrains Mono’,monospace;font-size:24px;font-weight:600;color:var(–navy-dk);}
+.pp-rcur{font-size:13px;opacity:.6;}
+.pp-body{padding:13px 18px;}
+.pp-stitle{font-size:10px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;
+color:var(–txt3);margin-bottom:8px;margin-top:12px;}
+.pp-stitle:first-child{margin-top:0;}
+.pp-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(–border);}
+.pp-row:last-child{border-bottom:none;}
+.pp-rl2{font-size:13px;color:var(–txt2);font-weight:500;}
+.pp-rv2{font-family:‘JetBrains Mono’,monospace;font-size:13px;font-weight:600;color:var(–navy);}
+.pp-foot{background:var(–bg);padding:10px 18px;border-top:1px solid var(–border);
+display:flex;justify-content:center;gap:14px;flex-wrap:wrap;}
+.pp-fi{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(–navy);}
+.pp-note{text-align:center;font-size:10px;color:var(–txt3);padding:6px 18px 12px;}
+
+/* ═══════════════════════════════════════════════════
+EXPORT DUGMAD
+═══════════════════════════════════════════════════ */
+.exp-btns{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px;}
+.btn-exp{border:none;border-radius:var(–rsm);padding:14px;font-family:‘Inter’,sans-serif;
+font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;}
+.btn-exp-pdf{background:linear-gradient(135deg,var(–navy),var(–navy-md));color:#fff;
+box-shadow:0 4px 14px rgba(26,49,96,.22);}
+.btn-exp-img{background:linear-gradient(135deg,var(–gold),var(–gold-lt));color:var(–navy-dk);
+box-shadow:0 4px 14px rgba(232,184,75,.28);}
+.btn-exp:disabled{opacity:.6;cursor:not-allowed;}
+
+/* ─── Dijeli dugme ───────────────────────────── */
+.share-btns{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px;}
+.btn-share{border:none;border-radius:var(–rsm);padding:13px;font-family:‘Inter’,sans-serif;
+font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;}
+.btn-viber{background:#7360f2;color:#fff;}
+.btn-wa{background:#25d366;color:#fff;}
+
+/* ─── Arhiviraj dugme ────────────────────────── */
+.btn-arhivaj{width:100%;margin-top:10px;background:var(–bg2);border:1.5px solid var(–border2);
+border-radius:var(–rsm);padding:13px;font-family:‘Inter’,sans-serif;font-size:14px;
+font-weight:700;color:var(–txt2);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;}
+.btn-arhivaj.saved{background:#e8f5e9;border-color:#a5d6a7;color:#2e7d32;}
+
+/* ═══════════════════════════════════════════════════
+ARHIVA EKRAN
+═══════════════════════════════════════════════════ */
+.search-wrap{padding:14px 14px 0;}
+.search-box{display:flex;gap:9px;align-items:center;}
+.search-input{flex:1;padding:12px 14px;border:1.5px solid var(–border);border-radius:var(–rsm);
+font-family:‘Inter’,sans-serif;font-size:15px;color:var(–txt);background:#fff;outline:none;
+-webkit-appearance:none;}
+.search-input:focus{border-color:var(–blue);box-shadow:0 0 0 3px rgba(45,91,227,.1);}
+.btn-search-clear{background:var(–bg2);border:1.5px solid var(–border);border-radius:var(–rsm);
+padding:12px 14px;font-family:‘Inter’,sans-serif;font-size:13px;font-weight:600;
+color:var(–txt3);cursor:pointer;white-space:nowrap;}
+
+.arch-count{font-size:12px;color:var(–txt3);padding:10px 14px 4px;font-weight:500;}
+.arch-list{padding:0 14px;}
+.arch-item{background:var(–card);border-radius:var(–rsm);border:1.5px solid var(–border);
+margin-bottom:10px;overflow:hidden;box-shadow:var(–sh);}
+.arch-item-hd{padding:12px 14px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+.arch-klijent{font-size:15px;font-weight:700;color:var(–navy);}
+.arch-datum{font-size:11px;color:var(–txt3);font-weight:500;white-space:nowrap;}
+.arch-prod{font-size:12px;color:var(–txt2);margin-top:2px;}
+.arch-item-ft{background:var(–bg);padding:10px 14px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(–border);}
+.arch-rata{font-family:‘JetBrains Mono’,monospace;font-size:16px;font-weight:700;color:var(–navy);}
+.arch-actions{display:flex;gap:7px;}
+.arch-btn{background:#fff;border:1.5px solid var(–border);border-radius:8px;
+padding:7px 11px;font-family:‘Inter’,sans-serif;font-size:12px;font-weight:600;
+cursor:pointer;color:var(–txt2);display:flex;align-items:center;gap:4px;}
+.arch-btn-del{color:var(–red);border-color:#f5c6c6;}
+.arch-empty{text-align:center;padding:48px 24px;color:var(–txt3);}
+.arch-empty .ico{font-size:48px;display:block;margin-bottom:12px;}
+.arch-empty p{font-size:14px;line-height:1.6;}
+
+/* ═══════════════════════════════════════════════════
+iOS SLIKA OVERLAY
+═══════════════════════════════════════════════════ */
+.img-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:400;
+display:none;align-items:flex-end;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);}
+.img-overlay.open{display:flex;}
+.img-sheet{background:#fff;border-radius:20px 20px 0 0;width:100%;
+padding:20px 16px calc(20px + var(–safe-bot));max-height:90vh;overflow-y:auto;}
+.img-sheet h3{font-size:16px;font-weight:700;color:var(–navy);margin-bottom:14px;text-align:center;}
+.img-preview{border-radius:10px;overflow:hidden;border:1px solid var(–border);margin-bottom:14px;
+max-height:50vh;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.img-preview img{width:100%;display:block;}
+.img-hint{background:var(–bg2);border-radius:var(–rsm);padding:13px;
+font-size:13px;color:var(–txt2);line-height:1.6;text-align:center;margin-bottom:14px;}
+.img-hint strong{color:var(–navy);}
+.img-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:9px;}
+.btn-save-img{background:var(–navy);border:none;border-radius:var(–rsm);padding:14px;
+font-family:‘Inter’,sans-serif;font-size:14px;font-weight:700;color:#fff;cursor:pointer;
+display:flex;align-items:center;justify-content:center;gap:6px;}
+.btn-open-tab{background:var(–blue);border:none;border-radius:var(–rsm);padding:14px;
+font-family:‘Inter’,sans-serif;font-size:14px;font-weight:700;color:#fff;cursor:pointer;
+display:flex;align-items:center;justify-content:center;gap:6px;}
+.btn-share-viber2{background:#7360f2;border:none;border-radius:var(–rsm);padding:14px;
+font-family:‘Inter’,sans-serif;font-size:14px;font-weight:700;color:#fff;cursor:pointer;
+display:flex;align-items:center;justify-content:center;gap:6px;}
+.btn-share-wa2{background:#25d366;border:none;border-radius:var(–rsm);padding:14px;
+font-family:‘Inter’,sans-serif;font-size:14px;font-weight:700;color:#fff;cursor:pointer;
+display:flex;align-items:center;justify-content:center;gap:6px;}
+.share-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:9px;}
+.btn-close-img{width:100%;background:var(–bg2);border:1.5px solid var(–border);
+border-radius:var(–rsm);padding:13px;font-family:‘Inter’,sans-serif;
+font-size:14px;font-weight:600;color:var(–txt2);cursor:pointer;}
+
+/* ═══════════════════════════════════════════════════
+TOAST NOTIFIKACIJA
+═══════════════════════════════════════════════════ */
+.toast{position:fixed;bottom:calc(80px + var(–safe-bot));left:50%;transform:translateX(-50%) translateY(20px);
+background:var(–navy-dk);color:#fff;padding:11px 20px;border-radius:30px;
+font-size:14px;font-weight:600;z-index:500;opacity:0;transition:all .3s;
+white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.3);}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ═══════════════════════════════════════════════════
+SPINNER
+═══════════════════════════════════════════════════ */
+.spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.35);
+border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;}
+.spin-dk{border-color:rgba(15,30,61,.25);border-top-color:var(–navy-dk);}
+@keyframes sp{to{transform:rotate(360deg);}}
 </style>
+
 </head>
 <body>
 
-<div class="hd">
-  <div class="logo"><b style="color:#1a3160;font-style:italic;font-size:20px;">MF</b></div>
-  <h1>Kreditni kalkulator</h1>
-  <p>Mikrofin Derventa - Vedran Gojić</p>
-</div>
+<!-- ═══════════ EKRAN 1: KALKULATOR ═══════════ -->
 
-<div class="cur-bar">
-  <div class="cur-toggle">
-    <button class="active" id="btn-km" onclick="setCur('KM')">KM</button>
-    <button id="btn-eur" onclick="setCur('EUR')">EUR</button>
-  </div>
-  <span style="font-size:12px;color:var(--txt3);">1 € = 1,946 KM</span>
-</div>
+<div class="screen active" id="sc-kalk">
 
-<div class="main">
-  <div class="res-card">
-    <div style="font-size:11px;opacity:0.7;">MIESEČNA RATA</div>
-    <div class="res-amt" id="r-rata">0,00</div>
-    <div id="r-eks" style="font-size:12px;background:rgba(255,255,255,0.1);display:inline-block;padding:3px 8px;border-radius:5px;margin-top:5px;">EKS: 0,00%</div>
-  </div>
-
-  <div class="card">
-    <div class="card-hd">Proizvod</div>
-    <div class="card-body">
-      <div class="cat-scroll" id="tabs"></div>
-      <select class="prod-select" id="prod-sel" onchange="onProdChange()"></select>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-body">
-      <div class="field">
-        <label style="font-size:12px;font-weight:700;color:var(--txt3);text-transform:uppercase;">Iznos kredita</label>
-        <div class="iw">
-          <input type="number" id="iznos" value="5000" oninput="calc()">
-          <span class="isuf" id="suf-iznos">KM</span>
-        </div>
+  <div class="hd">
+    <div class="hd-in">
+      <div class="logo">
+        <span class="logo-mf">MF</span>
+        <div class="logo-txt"><b>MIKROFIN</b><small>Vaš pouzdan partner</small></div>
       </div>
-      <div class="field">
-        <label style="font-size:12px;font-weight:700;color:var(--txt3);text-transform:uppercase;">Rok (mjeseci)</label>
-        <div class="iw">
-          <input type="number" id="rok" value="36" oninput="calc()">
-          <span class="isuf">mj.</span>
-        </div>
+      <div class="hd-txt">
+        <h1>Kreditni kalkulator</h1>
+        <p>MKD Mikrofin</p>
       </div>
     </div>
   </div>
 
-  <button class="btn-ponuda" onclick="alert('Ponuda spremna!')">GENERISI PONUDU</button>
+  <div class="cur-bar">
+    <div class="cur-toggle">
+      <button class="active" onclick="setCur('KM')">KM</button>
+      <button onclick="setCur('EUR')">EUR</button>
+    </div>
+    <span class="rate-pill">1 € = 1,946 KM</span>
+  </div>
+
+  <div class="wrap">
+
+```
+<!-- REZULTAT -->
+<div class="res-card">
+  <div class="res-lbl">Miesečna rata</div>
+  <div class="res-main">
+    <span class="res-amt" id="r-rata">0,00</span>
+    <span class="res-cur" id="r-cur">KM</span>
+  </div>
+  <div class="res-conv" id="r-conv"></div>
+  <div class="res-grid">
+    <div class="ri"><div class="ri-lbl">Iznos kredita</div><div class="ri-val" id="r-iznos">—</div><div class="ri-sub" id="r-iznos-s">KM</div></div>
+    <div class="ri"><div class="ri-lbl">Rok</div><div class="ri-val" id="r-rok">—</div><div class="ri-sub" id="r-rok-s"></div></div>
+    <div class="ri"><div class="ri-lbl">Troškovi</div><div class="ri-val" id="r-tros">0,00</div><div class="ri-sub" id="r-tros-s">KM</div></div>
+    <div class="ri"><div class="ri-lbl">Rata u <span id="r-other-lbl">EUR</span></div><div class="ri-val" id="r-other">—</div><div class="ri-sub" id="r-other-s">EUR</div></div>
+  </div>
 </div>
+
+<!-- KREDITNI PROIZVOD -->
+<div class="card">
+  <div class="card-hd"><span class="ico">🏦</span><h2>Kreditni proizvod</h2></div>
+  <div class="card-body">
+    <div class="slbl">Kategorija</div>
+    <div class="cat-scroll">
+      <div class="cat-tabs" id="cat-tabs">
+        <button class="cat-tab active" onclick="setCat('SVI')">Svi</button>
+        <button class="cat-tab" onclick="setCat('STANOVNIŠTVO')">Stanovništvo</button>
+        <button class="cat-tab" onclick="setCat('POLJOPRIVREDA')">Poljoprivreda</button>
+        <button class="cat-tab" onclick="setCat('PREDUZETNICI')">Preduzetnici</button>
+        <button class="cat-tab" onclick="setCat('POLJ + PRED')">Polj+Pred</button>
+        <button class="cat-tab" onclick="setCat('SVI TS')">Refinansiranje</button>
+        <button class="cat-tab" onclick="setCat('EKO')">Eko</button>
+        <button class="cat-tab" onclick="setCat('IRB')">IRB</button>
+      </div>
+    </div>
+    <div class="slbl">Odaberi proizvod</div>
+    <div class="sel-wrap">
+      <select class="prod-select" id="prod-sel" onchange="onProdManualChange()">
+        <option value="">— Odaberite proizvod —</option>
+      </select>
+    </div>
+    <div id="auto-badge" style="display:none;" class="auto-badge">⚡ Automatski prilagođeno</div>
+    <div class="prod-info" id="prod-info" style="display:none;">
+      <div class="pi"><div class="pi-lbl">Iznos</div><div class="pi-val" id="pi-iznos">—</div></div>
+      <div class="pi"><div class="pi-lbl">NKS %</div><div class="pi-val green" id="pi-kamata">—</div></div>
+      <div class="pi"><div class="pi-lbl">Provizija</div><div class="pi-val" id="pi-prov">—</div></div>
+      <div class="pi pi-full"><div class="pi-lbl">Rok otplate</div><div class="pi-val" id="pi-rok">—</div></div>
+    </div>
+    <div class="prod-note" id="prod-note"></div>
+  </div>
+</div>
+
+<!-- IZNOS -->
+<div class="card">
+  <div class="card-hd"><span class="ico">💰</span><h2>Iznos kredita</h2></div>
+  <div class="card-body">
+    <div class="field">
+      <label id="iznos-lbl">Iznos (KM)</label>
+      <div class="iw">
+        <input type="number" id="iznos" inputmode="decimal" value="5000" min="100" max="500000" step="100"
+          oninput="onIznosInput()" onchange="onIznosInput()">
+        <span class="isuf" id="iznos-suf">KM</span>
+      </div>
+      <input type="range" id="iznos-r" min="100" max="500000" step="100" value="5000"
+        oninput="onIznosRange()">
+      <div class="rlbls"><span id="r-min">100 KM</span><span id="r-max">500.000 KM</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ROK -->
+<div class="card">
+  <div class="card-hd"><span class="ico">📅</span><h2>Rok otplate</h2></div>
+  <div class="card-body">
+    <div class="field">
+      <label>Broj mieseci</label>
+      <div class="iw">
+        <input type="number" id="rok" inputmode="numeric" value="36" min="1" max="300"
+          oninput="syncR('rok');calc()">
+        <span class="isuf">mj.</span>
+      </div>
+      <input type="range" id="rok-r" min="1" max="300" value="36" oninput="syncI('rok');calc()">
+      <div class="rlbls"><span>1 mj.</span><span>300 mj.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- KAMATA -->
+<div class="card">
+  <div class="card-hd"><span class="ico">📊</span><h2>Kamatna stopa</h2></div>
+  <div class="card-body">
+    <div class="field">
+      <label>Nominalna kamatna stopa — godišnje (%)</label>
+      <div class="iw">
+        <input type="number" id="kamata" inputmode="decimal" value="12" min="0" max="100" step="0.01"
+          oninput="syncR('kamata');calc()">
+        <span class="isuf">%</span>
+      </div>
+      <input type="range" id="kamata-r" min="0" max="50" step="0.01" value="12" oninput="syncI('kamata');calc()">
+      <div class="rlbls"><span>0%</span><span>50%</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- TROŠKOVI -->
+<div class="card">
+  <div class="card-hd"><span class="ico">📋</span><h2>Troškovi odobrenja</h2></div>
+  <div class="card-body">
+    <p style="font-size:13px;color:var(--txt3);margin-bottom:14px;line-height:1.5;">
+      Unesite procenat (%) od iznosa kredita — iznos se automatski preračunava.
+    </p>
+    <div id="tros-lista"></div>
+    <button class="btn-add" onclick="dodajTros()">＋ Dodaj stavku troška</button>
+    <div class="tros-total">
+      <span>Ukupni troškovi</span>
+      <span class="tv" id="tros-total">0,00 KM</span>
+    </div>
+  </div>
+</div>
+
+<!-- GENERIŠI PONUDU -->
+<button class="btn-ponuda" onclick="openModal()">📄 Generiši i izvezi ponudu</button>
+
+<!-- KONTAKT -->
+<div class="card" style="margin-top:14px;">
+  <div class="card-hd"><span class="ico">📞</span><h2>Kontakt</h2></div>
+  <div class="card-body">
+    <div class="c-grid">
+      <a class="c-item" href="tel:+38766298450">
+        <div class="c-ico" style="background:#2d5be3;"><svg width="13" height="13" viewBox="0 0 24 24" fill="white"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg></div>
+        066 298 450
+      </a>
+      <a class="c-item" href="viber://chat?number=+38766298450">
+        <div class="c-ico" style="background:#7360f2;"><svg width="13" height="13" viewBox="0 0 24 24" fill="white"><path d="M11.4 0C7.8 0 3.5 1.2 1.5 5.2.3 7.5 0 10 0 12.3c0 2.3.2 5.4 2 7.5 1 1.2 2.4 1.9 3.8 2.3v2.7c0 .3.4.5.7.3l3-2.5c.8.1 1.5.1 2.2.1 4.3 0 9.6-1.6 10.8-7.3.3-1.4.4-2.8.4-4.1C22.9 2.3 16.4 0 11.4 0zm5.7 16.1c-.5 1.3-2 2.4-3.5 2.7-.7.1-1.3.1-2 0-1.4-.3-2.7-1-3.9-1.8-1.4-1-2.6-2.3-3.5-3.7-.5-.8-1-1.7-1.2-2.7-.2-.8-.2-1.7 0-2.5.4-1.4 1.6-2.4 3-2.7.6-.1 1 .2 1.3.7l1.2 2.3c.2.5.1 1-.2 1.4l-.7.7c-.2.2-.2.5 0 .7.7 1.2 1.7 2.1 3 2.8.3.2.6.1.8-.1l.7-.8c.3-.4.8-.5 1.3-.3l2.3 1.1c.5.2.8.8.7 1.3l-.3.9z"/></svg></div>
+        Viber
+      </a>
+      <a class="c-item" href="https://wa.me/38766298450" target="_blank">
+        <div class="c-ico" style="background:#25d366;"><svg width="13" height="13" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></div>
+        WhatsApp
+      </a>
+      <a class="c-item" href="mailto:vgojic@mikrofin.com">
+        <div class="c-ico" style="background:#1a3160;"><svg width="13" height="13" viewBox="0 0 24 24" fill="white"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg></div>
+        E-mail
+      </a>
+    </div>
+  </div>
+</div>
+```
+
+  </div><!-- /wrap -->
+</div><!-- /sc-kalk -->
+
+<!-- ═══════════ EKRAN 2: ARHIVA ═══════════ -->
+
+<div class="screen" id="sc-arhiva">
+  <div class="hd">
+    <div class="hd-in">
+      <div class="logo">
+        <span class="logo-mf">MF</span>
+        <div class="logo-txt"><b>MIKROFIN</b><small>Arhiva ponuda</small></div>
+      </div>
+      <div class="hd-txt">
+        <h1>Arhiva ponuda</h1>
+        <p>Pretraga i pregled</p>
+      </div>
+    </div>
+  </div>
+  <div class="search-wrap">
+    <div class="search-box">
+      <input class="search-input" type="text" id="search-input"
+        placeholder="Pretraži po imenu ili prezimenu…" oninput="renderArhiva()">
+      <button class="btn-search-clear" onclick="clearSearch()">Briši</button>
+    </div>
+  </div>
+  <div class="arch-count" id="arch-count"></div>
+  <div class="arch-list" id="arch-list"></div>
+</div>
+
+<!-- ═══════════ TAB BAR ═══════════ -->
+
+<div class="tab-bar">
+  <button class="tab-btn active" id="tab-kalk" onclick="goTab('kalk')">
+    <span class="tab-icon">🧮</span>Kalkulator
+  </button>
+  <button class="tab-btn" id="tab-arhiva" onclick="goTab('arhiva')">
+    <span class="tab-icon">📁</span>Arhiva
+  </button>
+</div>
+
+<!-- ═══════════ MODAL PONUDA ═══════════ -->
+
+<div class="overlay" id="modal">
+  <div class="modal">
+    <div class="m-hd">
+      <h3>📄 Ponuda</h3>
+      <button class="m-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="m-body">
+      <div class="p-grid">
+        <div class="pf"><label>Broj ponude</label><input type="text" id="p-broj" placeholder="2025/001" oninput="refreshPP()"></div>
+        <div class="pf"><label>Datum</label><input type="text" id="p-datum" placeholder="dd.mm.yyyy." oninput="refreshPP()"></div>
+      </div>
+      <div class="pf-full">
+        <label>Ime i prezime klijenta</label>
+        <input type="text" id="p-klijent" placeholder="npr. Marko Marković" oninput="refreshPP()">
+      </div>
+      <div class="hdiv"></div>
+
+```
+  <!-- PREVIEW -->
+  <div id="pp">
+    <div class="pp-top">
+      <div class="pp-logo">
+        <div class="logo"><span class="logo-mf">MF</span><div class="logo-txt"><b>MIKROFIN</b><small>Vaš pouzdan partner</small></div></div>
+        <div class="pp-logo-sub">MKD Mikrofin</div>
+      </div>
+      <div class="pp-meta">
+        <div class="pm-tag">Kreditna ponuda</div>
+        <div class="pm-title" id="pp-naslov">PONUDA</div>
+        <div class="pm-sub" id="pp-datum-broj"></div>
+        <div class="pm-klijent" id="pp-klijent-txt"></div>
+      </div>
+    </div>
+    <div class="pp-rata">
+      <div><div class="pp-rl">Miesečna rata</div><div class="pp-rc" id="pp-conv"></div></div>
+      <div><span class="pp-rv" id="pp-rata">0,00</span><span class="pp-rcur" id="pp-cur"> KM</span></div>
+    </div>
+    <div class="pp-body">
+      <div class="pp-stitle">Detalji kreditnog aranžmana</div>
+      <div class="pp-row"><span class="pp-rl2">Kreditni proizvod</span><span class="pp-rv2" id="pp-prod">—</span></div>
+      <div class="pp-row"><span class="pp-rl2">Iznos kredita</span><span class="pp-rv2" id="pp-iznos">—</span></div>
+      <div class="pp-row"><span class="pp-rl2">Rok otplate</span><span class="pp-rv2" id="pp-rok">—</span></div>
+      <div id="pp-tros-blok" style="display:none;">
+        <div class="pp-stitle" style="margin-top:12px;">Troškovi odobrenja</div>
+        <div id="pp-tros-rows"></div>
+        <div class="pp-row" style="font-weight:700;">
+          <span class="pp-rl2" style="color:var(--navy);font-weight:700;">Ukupni troškovi</span>
+          <span class="pp-rv2" id="pp-tros-uk"></span>
+        </div>
+      </div>
+    </div>
+    <div class="pp-foot">
+      <div class="pp-fi"><svg width="11" height="11" viewBox="0 0 24 24" fill="#2d5be3"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg>066 298 450</div>
+      <div class="pp-fi"><svg width="11" height="11" viewBox="0 0 24 24" fill="#7360f2"><path d="M11.4 0C7.8 0 3.5 1.2 1.5 5.2.3 7.5 0 10 0 12.3c0 2.3.2 5.4 2 7.5 1 1.2 2.4 1.9 3.8 2.3v2.7c0 .3.4.5.7.3l3-2.5c.8.1 1.5.1 2.2.1 4.3 0 9.6-1.6 10.8-7.3.3-1.4.4-2.8.4-4.1C22.9 2.3 16.4 0 11.4 0zm5.7 16.1c-.5 1.3-2 2.4-3.5 2.7-.7.1-1.3.1-2 0-1.4-.3-2.7-1-3.9-1.8-1.4-1-2.6-2.3-3.5-3.7-.5-.8-1-1.7-1.2-2.7-.2-.8-.2-1.7 0-2.5.4-1.4 1.6-2.4 3-2.7.6-.1 1 .2 1.3.7l1.2 2.3c.2.5.1 1-.2 1.4l-.7.7c-.2.2-.2.5 0 .7.7 1.2 1.7 2.1 3 2.8.3.2.6.1.8-.1l.7-.8c.3-.4.8-.5 1.3-.3l2.3 1.1c.5.2.8.8.7 1.3l-.3.9z"/></svg>Viber</div>
+      <div class="pp-fi"><svg width="11" height="11" viewBox="0 0 24 24" fill="#25d366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>WhatsApp</div>
+      <div class="pp-fi"><svg width="11" height="11" viewBox="0 0 24 24" fill="#1a3160"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>vgojic@mikrofin.com</div>
+    </div>
+    <div class="pp-note">Ponuda je informativnog karaktera i ne predstavlja ugovornu obavezu.</div>
+  </div><!-- /#pp -->
+
+  <!-- AKCIJE -->
+  <div class="exp-btns">
+    <button class="btn-exp btn-exp-pdf" id="btn-pdf" onclick="expPDF()">📄 PDF</button>
+    <button class="btn-exp btn-exp-img" id="btn-img" onclick="expImg()">🖼️ Slika</button>
+  </div>
+  <div class="share-btns">
+    <button class="btn-share btn-viber" onclick="shareViber()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M11.4 0C7.8 0 3.5 1.2 1.5 5.2.3 7.5 0 10 0 12.3c0 2.3.2 5.4 2 7.5 1 1.2 2.4 1.9 3.8 2.3v2.7c0 .3.4.5.7.3l3-2.5c.8.1 1.5.1 2.2.1 4.3 0 9.6-1.6 10.8-7.3.3-1.4.4-2.8.4-4.1C22.9 2.3 16.4 0 11.4 0z"/></svg>
+      Podijeli Viber
+    </button>
+    <button class="btn-share btn-wa" onclick="shareWA()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      Podijeli WA
+    </button>
+  </div>
+  <button class="btn-arhivaj" id="btn-arhivaj" onclick="arhiviraj()">
+    📁 Arhiviraj ponudu
+  </button>
+</div>
+```
+
+  </div>
+</div>
+
+<!-- ═══════════ iOS SLIKA OVERLAY ═══════════ -->
+
+<div class="img-overlay" id="img-overlay">
+  <div class="img-sheet">
+    <h3>📥 Spremi ponudu</h3>
+    <div class="img-preview"><img id="share-img" src="" alt="Ponuda"></div>
+    <div class="img-hint">
+      <strong>Spremi u Galeriju:</strong><br>
+      Pritisni i drži prst na slici → <strong>"Sačuvaj sliku"</strong>
+    </div>
+    <div class="img-actions">
+      <button class="btn-save-img" onclick="openImgTab()">🔗 Otvori u tabu</button>
+      <button class="btn-open-tab" onclick="useWebShare()">📤 Podijeli</button>
+    </div>
+    <div class="share-grid">
+      <button class="btn-share-viber2" onclick="shareImgViber()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="white"><path d="M11.4 0C7.8 0 3.5 1.2 1.5 5.2.3 7.5 0 10 0 12.3c0 2.3.2 5.4 2 7.5 1 1.2 2.4 1.9 3.8 2.3v2.7c0 .3.4.5.7.3l3-2.5c.8.1 1.5.1 2.2.1 4.3 0 9.6-1.6 10.8-7.3.3-1.4.4-2.8.4-4.1C22.9 2.3 16.4 0 11.4 0z"/></svg>
+        Viber
+      </button>
+      <button class="btn-share-wa2" onclick="shareImgWA()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        WhatsApp
+      </button>
+    </div>
+    <button class="btn-close-img" onclick="closeImgOverlay()">Zatvori</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+
+<div class="toast" id="toast"></div>
 
 <script>
+/* ═══════════════════════════════════════════════
+   KONSTANTE I PODACI
+═══════════════════════════════════════════════ */
 const KURS = 1.946;
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
 const PROIZVODI = [
-  {cat:'STANOVNIŠTVO',name:'Penzioneri (do 5.000 KM)',imin:100,imax:5000,nks:20.49,prov:0,rokMax:60},
-  {cat:'STANOVNIŠTVO',name:'Keško (5.001 – 10.000 KM)',imin:5001,imax:10000,nks:22.49,prov:0,rokMax:60},
-  {cat:'POLJOPRIVREDA',name:'Poljoprivreda (do 50.000 KM)',imin:300,imax:50000,nks:17,prov:1.5,rokMax:72},
-  {cat:'IRB',name:'Mladi bračni parovi',imin:10000,imax:50000,nks:3.0,prov:0.5,rokMax:300}
+  // STANOVNIŠTVO
+  {cat:'STANOVNIŠTVO',name:'MKR za polise osiguranja (do 1.000 KM)',imin:0,imax:999,nks:0,prov:0,rokMax:12,nap:'Provizija: 10 KM (1-6 mj), 15 KM (7-8 mj), 20 KM (10-12 mj)'},
+  {cat:'STANOVNIŠTVO',name:'MKR za polise osiguranja (≥ 1.000 KM)',imin:1000,imax:5000,nks:0,prov:6,rokMax:12,nap:''},
+  {cat:'STANOVNIŠTVO',name:'Robni MKR za stanovništvo (< 18 mj)',imin:200,imax:20000,nks:0,prov:10,rokMax:17,nap:''},
+  {cat:'STANOVNIŠTVO',name:'Robni MKR za stanovništvo (≥ 18 mj)',imin:200,imax:20000,nks:23,prov:0,rokMax:60,nap:''},
+  {cat:'STANOVNIŠTVO',name:'MKR za penzionere (do 5.000 KM)',imin:100,imax:5000,nks:20.49,prov:0,rokMax:60,nap:''},
+  {cat:'STANOVNIŠTVO',name:'MKR za penzionere (5.001 – 10.000 KM)',imin:5001,imax:10000,nks:19.49,prov:0,rokMax:60,nap:''},
+  {cat:'STANOVNIŠTVO',name:'Toto cash (100 – 400 KM)',imin:100,imax:400,nks:21.6,prov:0,rokMax:4,nap:'Miesečna stopa 1,8%'},
+  {cat:'STANOVNIŠTVO',name:'Toto cash (401 – 1.500 KM)',imin:401,imax:1500,nks:14.4,prov:0,rokMax:12,nap:'Miesečna stopa 1,2%'},
+  {cat:'STANOVNIŠTVO',name:'Keško (1.501 – 3.000 KM)',imin:1501,imax:3000,nks:24.49,prov:0,rokMax:36,nap:''},
+  {cat:'STANOVNIŠTVO',name:'Keško (3.001 – 5.000 KM)',imin:3001,imax:5000,nks:23.49,prov:0,rokMax:60,nap:''},
+  {cat:'STANOVNIŠTVO',name:'Keško (5.001 – 10.000 KM)',imin:5001,imax:10000,nks:22.49,prov:0,rokMax:60,nap:''},
+  {cat:'STANOVNIŠTVO',name:'MKR za domaćinstvo (1.501 – 3.000 KM)',imin:1501,imax:3000,nks:24.49,prov:0,rokMax:36,nap:''},
+  {cat:'STANOVNIŠTVO',name:'MKR za domaćinstvo (3.001 – 5.000 KM)',imin:3001,imax:5000,nks:23.49,prov:0,rokMax:60,nap:''},
+  {cat:'STANOVNIŠTVO',name:'MKR za domaćinstvo (5.001 – 10.000 KM)',imin:5001,imax:10000,nks:22.49,prov:0,rokMax:60,nap:''},
+  {cat:'STANOVNIŠTVO',name:'MKR za domaćinstvo (10.001 – 20.000 KM)',imin:10001,imax:20000,nks:19.49,prov:1.5,rokMax:72,nap:''},
+  {cat:'STANOVNIŠTVO',name:'MKR za domaćinstvo (20.001 – 50.000 KM)',imin:20001,imax:50000,nks:18.49,prov:1.0,rokMax:84,nap:''},
+  // POLJOPRIVREDA
+  {cat:'POLJOPRIVREDA',name:'MKR za poljoprivredu (300 – 5.000 KM)',imin:300,imax:5000,nks:20,prov:2,rokMax:42,nap:''},
+  {cat:'POLJOPRIVREDA',name:'MKR za poljoprivredu (5.001 – 15.000 KM)',imin:5001,imax:15000,nks:17,prov:1.5,rokMax:60,nap:''},
+  {cat:'POLJOPRIVREDA',name:'MKR za poljoprivredu (15.001 – 30.000 KM)',imin:15001,imax:30000,nks:16,prov:1.0,rokMax:72,nap:''},
+  {cat:'POLJOPRIVREDA',name:'MKR za poljoprivredu (30.001 – 50.000 KM)',imin:30001,imax:50000,nks:14.5,prov:1.0,rokMax:84,nap:''},
+  {cat:'POLJOPRIVREDA',name:'Robni MKR za poljoprivredu (< 18 mj)',imin:200,imax:20000,nks:0,prov:10,rokMax:17,nap:''},
+  {cat:'POLJOPRIVREDA',name:'Robni MKR za poljoprivredu (≥ 18 mj)',imin:200,imax:20000,nks:19,prov:0,rokMax:60,nap:''},
+  // PREDUZETNICI
+  {cat:'PREDUZETNICI',name:'MKR za preduzetnika (300 – 5.000 KM)',imin:300,imax:5000,nks:20,prov:2,rokMax:36,nap:'NKS za neregistrovane preduzetnike viša za 1,49%.'},
+  {cat:'PREDUZETNICI',name:'MKR za preduzetnika (5.001 – 15.000 KM)',imin:5001,imax:15000,nks:18,prov:1.5,rokMax:60,nap:'NKS za neregistrovane preduzetnike viša za 1,49%.'},
+  {cat:'PREDUZETNICI',name:'MKR za preduzetnika (15.001 – 30.000 KM)',imin:15001,imax:30000,nks:16.5,prov:1.0,rokMax:72,nap:'NKS za neregistrovane preduzetnike viša za 1,49%.'},
+  {cat:'PREDUZETNICI',name:'MKR za preduzetnika (30.001 – 50.000 KM)',imin:30001,imax:50000,nks:15,prov:1.0,rokMax:84,nap:'NKS za neregistrovane preduzetnike viša za 1,49%.'},
+  {cat:'PREDUZETNICI',name:'Robni MKR za preduzetnike (< 18 mj)',imin:200,imax:20000,nks:0,prov:10,rokMax:17,nap:''},
+  {cat:'PREDUZETNICI',name:'Robni MKR za preduzetnike (≥ 18 mj)',imin:200,imax:20000,nks:18,prov:0,rokMax:60,nap:''},
+  {cat:'PREDUZETNICI',name:'Preduzetnički reset (10.000 KM)',imin:10000,imax:10000,nks:0,prov:9.99,rokMax:10,nap:'Fiksni iznosi: 10.000, 20.000, 30.000, 40.000, 50.000 KM.'},
+  {cat:'PREDUZETNICI',name:'Preduzetnički reset (20.000 – 30.000 KM)',imin:20000,imax:30000,nks:0,prov:8.99,rokMax:10,nap:'Fiksni iznosi.'},
+  {cat:'PREDUZETNICI',name:'Preduzetnički reset (40.000 – 50.000 KM)',imin:40000,imax:50000,nks:0,prov:7.99,rokMax:10,nap:'Fiksni iznosi.'},
+  // POLJ + PRED
+  {cat:'POLJ + PRED',name:'Mikrofin preduzetnica (300 – 5.000 KM)',imin:300,imax:5000,nks:19.49,prov:2,rokMax:42,nap:'Za registrovane i neregistrovane. NKS za neregistrovane viša za 1,49%.'},
+  {cat:'POLJ + PRED',name:'Mikrofin preduzetnica (5.001 – 15.000 KM)',imin:5001,imax:15000,nks:16.49,prov:1.5,rokMax:60,nap:''},
+  {cat:'POLJ + PRED',name:'Mikrofin preduzetnica (15.001 – 30.000 KM)',imin:15001,imax:30000,nks:15.49,prov:1.0,rokMax:72,nap:''},
+  {cat:'POLJ + PRED',name:'Mikrofin preduzetnica (30.001 – 50.000 KM)',imin:30001,imax:50000,nks:13.99,prov:1.0,rokMax:84,nap:''},
+  // SVI TS
+  {cat:'SVI TS',name:'Refinansiranje (5.000 – 10.000 KM)',imin:5000,imax:10000,nks:16.49,prov:0,rokMax:60,nap:'Min. 50% iznosa sa namjenom refin. NKS za neregistrovane preduzetnike viša za 1,50%.'},
+  {cat:'SVI TS',name:'Refinansiranje (10.001 – 20.000 KM)',imin:10001,imax:20000,nks:15.49,prov:0,rokMax:72,nap:'Min. 50% iznosa sa namjenom refinansiranja.'},
+  {cat:'SVI TS',name:'Refinansiranje (20.001 – 50.000 KM)',imin:20001,imax:50000,nks:14.49,prov:0,rokMax:84,nap:'Min. 50% iznosa sa namjenom refinansiranja.'},
+  // EKO
+  {cat:'EKO',name:'Eko MKR (500 – 20.000 KM)',imin:500,imax:20000,nks:14.99,prov:0,rokMax:60,nap:'NKS zavisi od tehnologije i iznosa (12,99%, 14,99% ili 17,99%). Za sve TS.'},
+  {cat:'EKO',name:'Eko MKR (20.001 – 50.000 KM)',imin:20001,imax:50000,nks:14.99,prov:0,rokMax:84,nap:'NKS zavisi od tehnologije i iznosa.'},
+  {cat:'EKO',name:'GEFF (500 – 20.000 KM)',imin:500,imax:20000,nks:16,prov:0,rokMax:66,nap:'Povrat od investicije 15-20%. Samo za stanovništvo.'},
+  {cat:'EKO',name:'GEFF (20.001 – 50.000 KM)',imin:20001,imax:50000,nks:16,prov:0,rokMax:84,nap:'Samo za stanovništvo.'},
+  // IRB
+  {cat:'IRB',name:'Stambeni MKR – Opšta grupa',imin:10000,imax:50000,nks:4.2,prov:0.5,rokMax:300,nap:''},
+  {cat:'IRB',name:'Stambeni MKR – Beneficirana grupa',imin:10000,imax:50000,nks:3.6,prov:0.5,rokMax:300,nap:''},
+  {cat:'IRB',name:'Stambeni MKR – Grupa I',imin:10000,imax:50000,nks:4.0,prov:0.5,rokMax:300,nap:''},
+  {cat:'IRB',name:'Stambeni MKR – Mladi bračni parovi',imin:10000,imax:50000,nks:3.0,prov:0.5,rokMax:300,nap:''},
+  {cat:'IRB',name:'MKR za mikrobiznis u polj. – Fizička lica',imin:5000,imax:50000,nks:4.9,prov:0.5,rokMax:120,nap:''},
+  {cat:'IRB',name:'MKR za mikrobiznis u polj. – Pravna lica',imin:5000,imax:50000,nks:4.9,prov:1.0,rokMax:120,nap:''},
+  {cat:'IRB',name:'MKR za početne poslovne akt. – Fizička lica',imin:5000,imax:50000,nks:4.9,prov:0.5,rokMax:120,nap:''},
+  {cat:'IRB',name:'MKR za početne poslovne akt. – Pravna lica',imin:5000,imax:50000,nks:4.9,prov:1.0,rokMax:120,nap:''},
 ];
 
+/* ═══════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════ */
 let cur = 'KM';
+let activeCat = 'SVI';
+let selProd = null;         // trenutno odabrani proizvod (objekt)
+let lastImgDataUrl = '';
+let isArchivedForCurrent = false; // da li je ponuda već arhivirana
 
+/* ═══════════════════════════════════════════════
+   UTILS
+═══════════════════════════════════════════════ */
+const r2 = n => Math.round(n * 100) / 100;
+const fmt = n => n.toLocaleString('bs-BA', {minimumFractionDigits:2, maximumFractionDigits:2});
+const fmtP = n => n.toLocaleString('bs-BA', {minimumFractionDigits:2, maximumFractionDigits:2}) + '%';
+
+function uRS(r) {
+  const p = ((+r.value - +r.min) / (+r.max - +r.min) * 100).toFixed(1) + '%';
+  r.style.setProperty('--pct', p);
+}
+function syncR(id) {
+  const r = document.getElementById(id + '-r');
+  if (r) { r.value = document.getElementById(id).value; uRS(r); }
+}
+function syncI(id) {
+  const r = document.getElementById(id + '-r');
+  document.getElementById(id).value = r.value;
+  uRS(r);
+}
+
+function showToast(msg, dur = 2200) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), dur);
+}
+
+/* ═══════════════════════════════════════════════
+   TAB NAVIGACIJA
+═══════════════════════════════════════════════ */
+function goTab(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('sc-' + name).classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'arhiva') renderArhiva();
+}
+
+/* ═══════════════════════════════════════════════
+   VALUTA
+═══════════════════════════════════════════════ */
 function setCur(c) {
-  cur = c;
-  document.getElementById('btn-km').classList.toggle('active', c==='KM');
-  document.getElementById('btn-eur').classList.toggle('active', c==='EUR');
-  document.getElementById('suf-iznos').textContent = c;
+  const prev = cur; cur = c;
+  document.querySelectorAll('.cur-toggle button').forEach((b, i) =>
+    b.classList.toggle('active', (i===0&&c==='KM')||(i===1&&c==='EUR'))
+  );
+  const el = document.getElementById('iznos');
+  const val = parseFloat(el.value) || 0;
+  if (prev !== c && val > 0) {
+    const newVal = c === 'EUR' ? r2(val / KURS) : r2(val * KURS);
+    el.value = newVal;
+    document.getElementById('iznos-r').max = c === 'EUR' ? r2(500000 / KURS) : 500000;
+    document.getElementById('iznos-r').value = newVal;
+    document.getElementById('iznos-lbl').textContent = 'Iznos (' + c + ')';
+    document.getElementById('iznos-suf').textContent = c;
+    document.getElementById('r-min').textContent = c === 'EUR' ? r2(100 / KURS) + ' €' : '100 KM';
+    document.getElementById('r-max').textContent = c === 'EUR' ? '256.936 €' : '500.000 KM';
+    document.querySelectorAll('.tsuf-lbl').forEach(s => s.textContent = c);
+  }
   calc();
 }
 
-function init() {
-  const cats = ['SVI', ...new Set(PROIZVODI.map(p=>p.cat))];
-  document.getElementById('tabs').innerHTML = cats.map(c=>`<button class="cat-tab ${c==='SVI'?'active':''}" onclick="filter('${c}', this)">${c}</button>`).join('');
-  fillSelect('SVI');
+/* ═══════════════════════════════════════════════
+   KATEGORIJA
+═══════════════════════════════════════════════ */
+function setCat(cat) {
+  activeCat = cat;
+  document.querySelectorAll('.cat-tab').forEach(b => {
+    const t = b.textContent.trim();
+    b.classList.toggle('active', t === cat || (cat === 'SVI' && t === 'Svi'));
+  });
+  buildSelect();
+  // Ako je odabran proizvod koji nije u ovoj kategoriji, poništi
+  if (selProd && cat !== 'SVI' && selProd.cat !== cat) {
+    selProd = null;
+    hideProdInfo();
+  }
 }
 
-function filter(cat, btn) {
-  document.querySelectorAll('.cat-tab').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  fillSelect(cat);
+function buildSelect() {
+  const sel = document.getElementById('prod-sel');
+  const list = activeCat === 'SVI' ? PROIZVODI : PROIZVODI.filter(p => p.cat === activeCat);
+  sel.innerHTML = '<option value="">— Odaberite proizvod —</option>';
+  list.forEach(p => {
+    const idx = PROIZVODI.indexOf(p);
+    const o = document.createElement('option');
+    o.value = idx; o.textContent = p.name;
+    sel.appendChild(o);
+  });
+  // Postavi selektovanu opciju ako postoji
+  if (selProd) {
+    const idx = PROIZVODI.indexOf(selProd);
+    const opt = sel.querySelector(`option[value="${idx}"]`);
+    if (opt) sel.value = idx;
+    else sel.value = '';
+  } else {
+    sel.value = '';
+  }
 }
 
-function fillSelect(cat) {
-  const filtered = cat==='SVI' ? PROIZVODI : PROIZVODI.filter(p=>p.cat===cat);
-  document.getElementById('prod-sel').innerHTML = filtered.map(p=>`<option value="${PROIZVODI.indexOf(p)}">${p.name}</option>`).join('');
-  onProdChange();
+/* ═══════════════════════════════════════════════
+   AUTOMATSKO PRILAGOĐAVANJE PROIZVODA
+   Zove se kada korisnik pomjera slajder iznosa.
+   Pronalazi odgovarajući proizvod za tekuću kategoriju.
+═══════════════════════════════════════════════ */
+function autoMatchProd(iznosKM) {
+  // Ako kategorija nije specifična, ne radi auto-match
+  if (activeCat === 'SVI') return;
+  // Pronađi sve proizvode u kategoriji koji imaju raspon iznosa
+  // (isključi robne kredite koji ne mijenjaju kamatu po iznosu na isti način)
+  const catProds = PROIZVODI.filter(p =>
+    p.cat === activeCat &&
+    p.imin <= iznosKM && iznosKM <= p.imax
+  );
+  if (catProds.length === 0) return; // Izvan raspona, ne mijenjaj
+  const matched = catProds[0];
+  if (selProd === matched) return; // Već odabran, ne radi ništa
+  // Automatski postavi
+  selProd = matched;
+  buildSelect(); // ažurira select na novi proizvod
+  document.getElementById('auto-badge').style.display = 'flex';
+  // Postavi kamatu i rok automatski (ali NE iznos i NE trosak jer ih korisnik sam vodi)
+  document.getElementById('kamata').value = r2(matched.nks);
+  syncR('kamata');
+  // Rok: samo ako je trenutni rok veći od max roka novog proizvoda
+  const currentRok = parseInt(document.getElementById('rok').value) || 1;
+  if (currentRok > matched.rokMax) {
+    document.getElementById('rok').value = matched.rokMax;
+    const rr = document.getElementById('rok-r');
+    rr.max = Math.max(matched.rokMax, 300);
+    rr.value = matched.rokMax;
+    uRS(rr);
+  }
+  // Ažuriraj info panel
+  updateProdInfo(matched, iznosKM);
+  // Ažuriraj trosak provizije ako postoji auto-tros
+  updateAutoTros(matched);
 }
 
-function onProdChange() {
-  const p = PROIZVODI[document.getElementById('prod-sel').value];
-  if(!p) return;
-  document.getElementById('iznos').value = p.imin;
+function updateProdInfo(p, iznosKM) {
+  const iMin = cur === 'EUR' ? r2(p.imin / KURS) : p.imin;
+  const iMax = cur === 'EUR' ? r2(p.imax / KURS) : p.imax;
+  document.getElementById('pi-iznos').textContent = fmt(iMin) + ' – ' + fmt(iMax) + ' ' + cur;
+  document.getElementById('pi-kamata').textContent = p.nks > 0 ? fmtP(p.nks) : '0,00% (Robni)';
+  document.getElementById('pi-prov').textContent = p.prov > 0 ? fmtP(p.prov) : '—';
+  const g = Math.floor(p.rokMax / 12), m = p.rokMax % 12;
+  document.getElementById('pi-rok').textContent = 'Do ' + p.rokMax + ' mj.' +
+    (g > 0 ? ' (' + g + ' god.' + (m > 0 ? ' ' + m + ' mj.' : '') + ')' : '');
+  document.getElementById('prod-info').style.display = 'grid';
+  const note = document.getElementById('prod-note');
+  if (p.nap) { note.textContent = p.nap; note.style.display = 'block'; }
+  else { note.style.display = 'none'; }
+}
+
+function updateAutoTros(p) {
+  const autoRows = document.querySelectorAll('.auto-tros');
+  if (p.prov > 0) {
+    if (autoRows.length > 0) {
+      // Ažuriraj postojeći
+      autoRows[0].querySelector('.tpct').value = p.prov;
+    } else {
+      // Dodaj novi
+      _dodajAutoTros(p.prov);
+    }
+  } else {
+    // Ukloni auto trosak ako novi proizvod nema proviziju
+    autoRows.forEach(r => r.remove());
+  }
+  calc();
+}
+
+function _dodajAutoTros(prov) {
+  const lista = document.getElementById('tros-lista');
+  const div = document.createElement('div');
+  div.className = 'trow auto-tros';
+  div.innerHTML = `
+    <div class="trow-top">
+      <input class="tnaziv" type="text" value="Naknada za obradu" oninput="calc()">
+      <button class="btn-rm" onclick="this.closest('.trow').remove();calc()">✕</button>
+    </div>
+    <div class="trow-bot">
+      <div class="tpct-wrap">
+        <input class="tpct" type="number" inputmode="decimal" value="${prov}" min="0" max="100" step="0.01" oninput="calc()">
+        <span class="tsuf-lbl">%</span>
+      </div>
+      <div class="tval-display">0,00 ${cur}</div>
+    </div>`;
+  lista.insertBefore(div, lista.firstChild);
+}
+
+function hideProdInfo() {
+  document.getElementById('prod-info').style.display = 'none';
+  document.getElementById('prod-note').style.display = 'none';
+  document.getElementById('auto-badge').style.display = 'none';
+  document.getElementById('prod-sel').value = '';
+}
+
+/* Ručna promjena iz selecta */
+function onProdManualChange() {
+  const idx = document.getElementById('prod-sel').value;
+  document.getElementById('auto-badge').style.display = 'none';
+  if (idx === '') { selProd = null; hideProdInfo(); calc(); return; }
+  selProd = PROIZVODI[+idx];
+  _applyProdFull(selProd);
+}
+
+/* Potpuno primijeni proizvod (pri ručnom odabiru) */
+function _applyProdFull(p) {
+  document.getElementById('kamata').value = r2(p.nks); syncR('kamata');
+  // Iznos: postavi na sredinu raspona
+  const mid = r2((p.imin + p.imax) / 2);
+  const midC = cur === 'EUR' ? r2(mid / KURS) : mid;
+  document.getElementById('iznos').value = midC;
+  const rng = document.getElementById('iznos-r');
+  rng.min = cur === 'EUR' ? r2(p.imin / KURS) : p.imin;
+  rng.max = cur === 'EUR' ? r2(p.imax / KURS) : p.imax;
+  rng.value = midC; uRS(rng);
+  // Rok
   document.getElementById('rok').value = p.rokMax;
+  const rr = document.getElementById('rok-r'); rr.max = Math.max(p.rokMax, 300); rr.value = p.rokMax; uRS(rr);
+  // Trosak
+  document.querySelectorAll('.auto-tros').forEach(e => e.remove());
+  if (p.prov > 0) _dodajAutoTros(p.prov);
+  updateProdInfo(p, cur === 'EUR' ? parseFloat(document.getElementById('iznos').value) * KURS : parseFloat(document.getElementById('iznos').value));
   calc();
+}
+
+/* ═══════════════════════════════════════════════
+   HANDLER-I ZA IZNOS (slajder + input)
+═══════════════════════════════════════════════ */
+function onIznosInput() {
+  syncR('iznos');
+  const iznos = parseFloat(document.getElementById('iznos').value) || 0;
+  const iznosKM = cur === 'EUR' ? iznos * KURS : iznos;
+  autoMatchProd(iznosKM);
+  calc();
+}
+
+function onIznosRange() {
+  syncI('iznos');
+  const iznos = parseFloat(document.getElementById('iznos').value) || 0;
+  const iznosKM = cur === 'EUR' ? iznos * KURS : iznos;
+  autoMatchProd(iznosKM);
+  calc();
+}
+
+/* ═══════════════════════════════════════════════
+   TROŠKOVI
+═══════════════════════════════════════════════ */
+function getTros() {
+  let list = [], total = 0;
+  document.querySelectorAll('.trow').forEach(row => {
+    const naziv = row.querySelector('.tnaziv').value || 'Trošak';
+    const pct = parseFloat(row.querySelector('.tpct').value) || 0;
+    const iznos = parseFloat(document.getElementById('iznos').value) || 0;
+    const iznosKM = cur === 'EUR' ? iznos * KURS : iznos;
+    const valKM = iznosKM * (pct / 100);
+    const valC = cur === 'EUR' ? r2(valKM / KURS) : valKM;
+    const disp = row.querySelector('.tval-display');
+    if (disp) disp.textContent = fmt(valC) + ' ' + cur;
+    list.push({naziv, pct, val: valC});
+    total += valC;
+  });
+  return {list, total};
+}
+
+function dodajTros() {
+  const div = document.createElement('div');
+  div.className = 'trow';
+  div.innerHTML = `
+    <div class="trow-top">
+      <input class="tnaziv" type="text" placeholder="Naziv troška" oninput="calc()">
+      <button class="btn-rm" onclick="this.closest('.trow').remove();calc()">✕</button>
+    </div>
+    <div class="trow-bot">
+      <div class="tpct-wrap">
+        <input class="tpct" type="number" inputmode="decimal" value="0" min="0" max="100" step="0.01" oninput="calc()">
+        <span class="tsuf-lbl">%</span>
+      </div>
+      <div class="tval-display">0,00 ${cur}</div>
+    </div>`;
+  document.getElementById('tros-lista').appendChild(div);
+  calc();
+}
+
+/* ═══════════════════════════════════════════════
+   KALKULACIJA
+═══════════════════════════════════════════════ */
+function getRata(iznos, rok, nks) {
+  if (nks === 0) return rok > 0 ? iznos / rok : 0;
+  const r = (nks / 100) / 12;
+  return iznos * r * Math.pow(1 + r, rok) / (Math.pow(1 + r, rok) - 1);
 }
 
 function calc() {
   const iznos = parseFloat(document.getElementById('iznos').value) || 0;
   const rok = parseInt(document.getElementById('rok').value) || 1;
-  const p = PROIZVODI[document.getElementById('prod-sel').value] || {nks:12, prov:0};
-  
-  const r = (p.nks/100)/12;
-  const rata = nks_calc(iznos, r, rok);
-  const eks = (((rata * rok + (iznos * p.prov/100)) - iznos) / iznos / (rok/12)) * 100;
+  const nks = parseFloat(document.getElementById('kamata').value) || 0;
+  const {list, total: tros} = getTros();
+  const oCur = cur === 'KM' ? 'EUR' : 'KM';
+  const oKF = cur === 'KM' ? 1 / KURS : KURS;
+  const rata = getRata(iznos, rok, nks);
+  const god = Math.floor(rok / 12), mj = rok % 12;
 
-  document.getElementById('r-rata').textContent = rata.toLocaleString('bs-BA', {minimumFractionDigits:2});
-  document.getElementById('r-eks').textContent = `EKS: ${eks.toFixed(2)}%`;
+  document.getElementById('r-rata').textContent = fmt(rata);
+  document.getElementById('r-cur').textContent = cur;
+  document.getElementById('r-conv').textContent = '≈ ' + fmt(rata * oKF) + ' ' + oCur;
+  document.getElementById('r-iznos').textContent = fmt(iznos);
+  document.getElementById('r-iznos-s').textContent = cur;
+  document.getElementById('r-rok').textContent = rok + ' mj.';
+  document.getElementById('r-rok-s').textContent = god > 0 ? god + ' god.' + (mj > 0 ? ' ' + mj + ' mj.' : '') : '';
+  document.getElementById('r-tros').textContent = fmt(tros);
+  document.getElementById('r-tros-s').textContent = cur;
+  document.getElementById('r-other').textContent = fmt(rata * oKF);
+  document.getElementById('r-other-s').textContent = oCur;
+  document.getElementById('r-other-lbl').textContent = oCur;
+  document.getElementById('tros-total').textContent = fmt(tros) + ' ' + cur;
+
+  ['iznos', 'rok', 'kamata'].forEach(id => { const r = document.getElementById(id + '-r'); if (r) uRS(r); });
+
+  // Reset arhiva badge pri svakoj promjeni
+  isArchivedForCurrent = false;
+  const btn = document.getElementById('btn-arhivaj');
+  if (btn) { btn.classList.remove('saved'); btn.innerHTML = '📁 Arhiviraj ponudu'; }
 }
 
-function nks_calc(p, r, n) {
-  if(r === 0) return p/n;
-  return p * r * Math.pow(1+r, n) / (Math.pow(1+r, n) - 1);
+/* ═══════════════════════════════════════════════
+   MODAL
+═══════════════════════════════════════════════ */
+function openModal() {
+  if (!document.getElementById('p-datum').value) {
+    const d = new Date();
+    document.getElementById('p-datum').value =
+      String(d.getDate()).padStart(2,'0') + '.' +
+      String(d.getMonth()+1).padStart(2,'0') + '.' +
+      d.getFullYear() + '.';
+  }
+  refreshPP();
+  document.getElementById('modal').classList.add('open');
+  isArchivedForCurrent = false;
+  const btn = document.getElementById('btn-arhivaj');
+  btn.classList.remove('saved'); btn.innerHTML = '📁 Arhiviraj ponudu';
+}
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+
+/* ═══════════════════════════════════════════════
+   PONUDA PREVIEW
+═══════════════════════════════════════════════ */
+function refreshPP() {
+  const iznos = parseFloat(document.getElementById('iznos').value) || 0;
+  const rok = parseInt(document.getElementById('rok').value) || 1;
+  const nks = parseFloat(document.getElementById('kamata').value) || 0;
+  const {list, total: tros} = getTros();
+  const oCur = cur === 'KM' ? 'EUR' : 'KM';
+  const oKF = cur === 'KM' ? 1 / KURS : KURS;
+  const rata = getRata(iznos, rok, nks);
+  const broj = document.getElementById('p-broj').value;
+  const datum = document.getElementById('p-datum').value;
+  const klijent = document.getElementById('p-klijent').value;
+
+  document.getElementById('pp-naslov').textContent = broj ? 'Ponuda br. ' + broj : 'PONUDA';
+  document.getElementById('pp-datum-broj').textContent = datum || '';
+  document.getElementById('pp-klijent-txt').textContent = klijent || '';
+  document.getElementById('pp-rata').textContent = fmt(rata);
+  document.getElementById('pp-cur').textContent = ' ' + cur;
+  document.getElementById('pp-conv').textContent = '≈ ' + fmt(rata * oKF) + ' ' + oCur;
+  document.getElementById('pp-prod').textContent = selProd ? selProd.name : '—';
+  document.getElementById('pp-iznos').textContent = fmt(iznos) + ' ' + cur;
+  const g = Math.floor(rok / 12), m = rok % 12;
+  document.getElementById('pp-rok').textContent = rok + ' mj.' + (g > 0 ? ' (' + g + ' god.' + (m > 0 ? ' ' + m + ' mj.' : '') + ')' : '');
+
+  const blok = document.getElementById('pp-tros-blok');
+  if (list.length === 0) { blok.style.display = 'none'; }
+  else {
+    blok.style.display = 'block';
+    document.getElementById('pp-tros-rows').innerHTML = list.map(t =>
+      `<div class="pp-row"><span class="pp-rl2">${t.naziv} (${fmtP(t.pct)})</span><span class="pp-rv2">${fmt(t.val)} ${cur}</span></div>`
+    ).join('');
+    document.getElementById('pp-tros-uk').textContent = fmt(tros) + ' ' + cur;
+  }
 }
 
-window.onload = init;
+/* ═══════════════════════════════════════════════
+   CAPTURE (html2canvas)
+═══════════════════════════════════════════════ */
+async function captureEl() {
+  refreshPP();
+  await new Promise(r => setTimeout(r, 150));
+  return await html2canvas(document.getElementById('pp'), {
+    scale: 3, useCORS: true, backgroundColor: '#ffffff',
+    logging: false, allowTaint: true
+  });
+}
+
+/* ═══════════════════════════════════════════════
+   EXPORT PDF
+═══════════════════════════════════════════════ */
+async function expPDF() {
+  const btn = document.getElementById('btn-pdf');
+  btn.disabled = true; btn.innerHTML = '<span class="spin"></span> PDF...';
+  try {
+    const canvas = await captureEl();
+    const img = canvas.toDataURL('image/jpeg', .97);
+    // Kreiraj PDF bez jsPDF (samo koristi blob + window.open za iOS)
+    const naziv = 'Mikrofin-Ponuda' + (document.getElementById('p-broj').value ? '-' + document.getElementById('p-broj').value : '');
+
+    if (isIOS) {
+      // Na iOS: prikaži sliku u overlay, korisnik može koristiti Share → Print → PDF
+      lastImgDataUrl = img;
+      document.getElementById('share-img').src = img;
+      document.getElementById('img-overlay').classList.add('open');
+      showToast('Koristite "Podijeli → Štampaj" za PDF');
+    } else {
+      // Desktop: generiši PDF
+      await _generatePDF(canvas, naziv);
+    }
+  } catch(e) { showToast('Greška: ' + e.message); console.error(e); }
+  btn.disabled = false; btn.innerHTML = '📄 PDF';
+}
+
+async function _generatePDF(canvas, naziv) {
+  // Dinamički uvezi jsPDF
+  if (!window.jspdf) {
+    await new Promise((res, rej) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+      s.onload = res; s.onerror = rej;
+      document.head.appendChild(s);
+    });
+  }
+  const {jsPDF} = window.jspdf;
+  const pdf = new jsPDF({orientation:'portrait', unit:'mm', format:'a4'});
+  const pw = 210, ratio = canvas.height / canvas.width;
+  let w = pw - 20, h = w * ratio;
+  if (h > 277) { h = 277; w = h / ratio; }
+  pdf.addImage(canvas.toDataURL('image/jpeg', .97), 'JPEG', (pw-w)/2, 10, w, h);
+  pdf.save(naziv + '.pdf');
+}
+
+/* ═══════════════════════════════════════════════
+   EXPORT SLIKA (iOS kompatibilno)
+═══════════════════════════════════════════════ */
+async function expImg() {
+  const btn = document.getElementById('btn-img');
+  btn.disabled = true; btn.innerHTML = '<span class="spin-dk"></span> Slika...';
+  try {
+    const canvas = await captureEl();
+    lastImgDataUrl = canvas.toDataURL('image/jpeg', .95);
+    document.getElementById('share-img').src = lastImgDataUrl;
+
+    if (isIOS) {
+      document.getElementById('img-overlay').classList.add('open');
+    } else {
+      const a = document.createElement('a');
+      a.download = 'Mikrofin-Ponuda' + (document.getElementById('p-broj').value ? '-' + document.getElementById('p-broj').value : '') + '.jpg';
+      a.href = lastImgDataUrl; a.click();
+    }
+  } catch(e) { showToast('Greška: ' + e.message); console.error(e); }
+  btn.disabled = false; btn.innerHTML = '🖼️ Slika';
+}
+
+/* ═══════════════════════════════════════════════
+   iOS OVERLAY AKCIJE
+═══════════════════════════════════════════════ */
+function openImgTab() { window.open(lastImgDataUrl, '_blank'); }
+
+function closeImgOverlay() { document.getElementById('img-overlay').classList.remove('open'); }
+
+async function useWebShare() {
+  if (!navigator.share) { openImgTab(); return; }
+  try {
+    // Pretvori dataUrl u Blob → File
+    const res = await fetch(lastImgDataUrl);
+    const blob = await res.blob();
+    const file = new File([blob], 'Mikrofin-Ponuda.jpg', {type: 'image/jpeg'});
+    await navigator.share({ files: [file], title: 'Mikrofin ponuda' });
+  } catch(e) {
+    if (e.name !== 'AbortError') openImgTab();
+  }
+}
+
+async function _shareImgToApp(url) {
+  if (!lastImgDataUrl) { showToast('Prvo generiši sliku!'); return; }
+  try {
+    const res = await fetch(lastImgDataUrl);
+    const blob = await res.blob();
+    const file = new File([blob], 'Mikrofin-Ponuda.jpg', {type: 'image/jpeg'});
+    if (navigator.share && navigator.canShare && navigator.canShare({files:[file]})) {
+      await navigator.share({files:[file], title:'Mikrofin ponuda'});
+    } else {
+      window.open(url, '_blank');
+    }
+  } catch(e) {
+    if (e.name !== 'AbortError') window.open(url, '_blank');
+  }
+}
+
+async function shareImgViber() { await _shareImgToApp('viber://forward?text=Mikrofin+ponuda'); }
+async function shareImgWA() { await _shareImgToApp('https://wa.me/?text=Mikrofin+ponuda'); }
+
+/* ═══════════════════════════════════════════════
+   DIJELI (bez slike — otvaranje appa)
+═══════════════════════════════════════════════ */
+async function shareViber() {
+  if (!lastImgDataUrl) {
+    // Generiši sliku pa podijeli
+    try {
+      const canvas = await captureEl();
+      lastImgDataUrl = canvas.toDataURL('image/jpeg', .92);
+    } catch(e) {}
+  }
+  await shareImgViber();
+}
+
+async function shareWA() {
+  if (!lastImgDataUrl) {
+    try {
+      const canvas = await captureEl();
+      lastImgDataUrl = canvas.toDataURL('image/jpeg', .92);
+    } catch(e) {}
+  }
+  await shareImgWA();
+}
+
+/* ═══════════════════════════════════════════════
+   ARHIVA (localStorage)
+═══════════════════════════════════════════════ */
+const ARCH_KEY = 'mf_arhiva_v1';
+
+function loadArhiva() {
+  try { return JSON.parse(localStorage.getItem(ARCH_KEY) || '[]'); }
+  catch(e) { return []; }
+}
+function saveArhiva(data) {
+  try { localStorage.setItem(ARCH_KEY, JSON.stringify(data)); } catch(e) {}
+}
+
+function nextBroj() {
+  const data = loadArhiva();
+  if (data.length === 0) return 1;
+  const nums = data.map(p => parseInt(p.seqNum) || 0);
+  return Math.max(...nums) + 1;
+}
+
+function arhiviraj() {
+  if (isArchivedForCurrent) { showToast('Već arhivirano ✓'); return; }
+  const iznos = parseFloat(document.getElementById('iznos').value) || 0;
+  const rok = parseInt(document.getElementById('rok').value) || 1;
+  const nks = parseFloat(document.getElementById('kamata').value) || 0;
+  const {list: trosList, total: tros} = getTros();
+  const rata = getRata(iznos, rok, nks);
+  const klijent = document.getElementById('p-klijent').value.trim();
+  const datum = document.getElementById('p-datum').value || _todayStr();
+  const broj = document.getElementById('p-broj').value;
+  const seqNum = nextBroj();
+  const archBroj = broj || String(seqNum).padStart(4, '0');
+
+  const entry = {
+    id: 'p' + Date.now(),
+    seqNum,
+    broj: archBroj,
+    datum,
+    klijent: klijent || 'Nepoznat klijent',
+    proizvod: selProd ? selProd.name : '—',
+    iznos, rok, nks, tros, trosList, rata, cur,
+    ts: Date.now()
+  };
+
+  const data = loadArhiva();
+  data.unshift(entry); // Najnoviji na vrhu
+  saveArhiva(data);
+
+  isArchivedForCurrent = true;
+  const btn = document.getElementById('btn-arhivaj');
+  btn.classList.add('saved');
+  btn.innerHTML = '✓ Arhivirano (br. ' + archBroj + ')';
+  showToast('✓ Ponuda arhivirana br. ' + archBroj);
+
+  // Automatski postavi broj ponude ako nije bio unesen
+  if (!document.getElementById('p-broj').value) {
+    document.getElementById('p-broj').value = archBroj;
+    refreshPP();
+  }
+}
+
+function _todayStr() {
+  const d = new Date();
+  return String(d.getDate()).padStart(2,'0') + '.' + String(d.getMonth()+1).padStart(2,'0') + '.' + d.getFullYear() + '.';
+}
+
+function deleteArh(id) {
+  if (!confirm('Obrisati ovu ponudu iz arhive?')) return;
+  let data = loadArhiva().filter(p => p.id !== id);
+  saveArhiva(data);
+  renderArhiva();
+  showToast('Ponuda obrisana');
+}
+
+function renderArhiva() {
+  const q = document.getElementById('search-input').value.trim().toLowerCase();
+  let data = loadArhiva();
+  if (q) {
+    data = data.filter(p => p.klijent.toLowerCase().includes(q));
+  }
+  const count = document.getElementById('arch-count');
+  const list = document.getElementById('arch-list');
+  count.textContent = data.length === 0 ? '' : data.length + ' ponuda' + (q ? ' za "' + q + '"' : '');
+
+  if (data.length === 0) {
+    list.innerHTML = `<div class="arch-empty">
+      <span class="ico">📭</span>
+      <p>${q ? 'Nema rezultata za "' + q + '"' : 'Arhiva je prazna.<br>Generiši ponudu i arhiviraj je.'}</p>
+    </div>`;
+    return;
+  }
+
+  list.innerHTML = data.map(p => `
+    <div class="arch-item">
+      <div class="arch-item-hd">
+        <div>
+          <div class="arch-klijent">${escHtml(p.klijent)}</div>
+          <div class="arch-prod">${escHtml(p.proizvod)}</div>
+        </div>
+        <div class="arch-datum">br. ${escHtml(p.broj)}<br>${escHtml(p.datum)}</div>
+      </div>
+      <div class="arch-item-ft">
+        <div>
+          <div class="arch-rata">${fmt(p.rata)} ${p.cur}/mj.</div>
+          <div style="font-size:11px;color:var(--txt3);margin-top:2px;">${fmt(p.iznos)} ${p.cur} · ${p.rok} mj.</div>
+        </div>
+        <div class="arch-actions">
+          <button class="arch-btn" onclick="ucitajArhPonudu('${p.id}')">📋 Učitaj</button>
+          <button class="arch-btn arch-btn-del" onclick="deleteArh('${p.id}')">✕</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function ucitajArhPonudu(id) {
+  const p = loadArhiva().find(x => x.id === id);
+  if (!p) return;
+  // Postavi vrijednosti u kalkulator
+  setCur(p.cur);
+  document.getElementById('iznos').value = p.iznos; syncR('iznos');
+  document.getElementById('rok').value = p.rok; syncR('rok');
+  document.getElementById('kamata').value = p.nks; syncR('kamata');
+  document.getElementById('p-klijent').value = p.klijent;
+  document.getElementById('p-datum').value = p.datum;
+  document.getElementById('p-broj').value = p.broj;
+  // Troškovi
+  document.getElementById('tros-lista').innerHTML = '';
+  (p.trosList || []).forEach(t => {
+    const div = document.createElement('div');
+    div.className = 'trow';
+    div.innerHTML = `
+      <div class="trow-top">
+        <input class="tnaziv" type="text" value="${escHtml(t.naziv)}" oninput="calc()">
+        <button class="btn-rm" onclick="this.closest('.trow').remove();calc()">✕</button>
+      </div>
+      <div class="trow-bot">
+        <div class="tpct-wrap">
+          <input class="tpct" type="number" inputmode="decimal" value="${t.pct}" min="0" max="100" step="0.01" oninput="calc()">
+          <span class="tsuf-lbl">${p.cur}</span>
+        </div>
+        <div class="tval-display">0,00 ${p.cur}</div>
+      </div>`;
+    document.getElementById('tros-lista').appendChild(div);
+  });
+  // Pronađi i postavi proizvod
+  if (p.proizvod && p.proizvod !== '—') {
+    const found = PROIZVODI.find(x => x.name === p.proizvod);
+    if (found) { selProd = found; buildSelect(); updateProdInfo(found, p.iznos); }
+  }
+  calc();
+  goTab('kalk');
+  showToast('Ponuda učitana ✓');
+}
+
+function clearSearch() {
+  document.getElementById('search-input').value = '';
+  renderArhiva();
+}
+
+/* ═══════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  buildSelect();
+  ['iznos', 'rok', 'kamata'].forEach(id => {
+    const r = document.getElementById(id + '-r'); if (r) uRS(r);
+  });
+  calc();
+});
+
+document.getElementById('modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+document.getElementById('img-overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeImgOverlay();
+});
 </script>
+
 </body>
 </html>
